@@ -1,6 +1,10 @@
 ### learn-frida-the-hard-way
 
-TODOs: Add GIFs & docs
+TODOs: 
+- Add GIFs & docs
+- SQLite hook example (+Native)
+
+
 
 * Hook example: `java.lang.reflect.Method#invoke(Object obj, Object... args, boolean bool)`
 
