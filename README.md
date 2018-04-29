@@ -5,6 +5,15 @@ TODOs:
 - SQLite hook example (+Native)
 
 
+`
+Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2'), {
+  onEnter: function(args) {
+     console.log('DB: ' +  Memory.readUtf16String(args[0]) + '\tSQL: ' + Memory.readUtf16String(args[1]));
+  }
+});
+`
+
+
 
 * Hook example: `java.lang.reflect.Method#invoke(Object obj, Object... args, boolean bool)`
 
