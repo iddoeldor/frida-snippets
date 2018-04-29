@@ -10,6 +10,7 @@ TODOs:
         -libsqlite.so
         
 - get methods from .so file
+
         $ adb pull /system/lib/libsqlite.so
          /system/lib/libsqlite.so: 1 file pulled. 19.7 MB/s (975019 bytes in 0.047s)
         $ nm -D libsqlite.so | cut -d' ' -f3 | grep sqlite3
