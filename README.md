@@ -5,7 +5,7 @@ TODOs:
 
 - Enumerate loaded classes
 
-      $ frida -U com.pkg -e 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' > pkg.classes
+      $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' -o pkg.classes
 
 - Extract modules from APK
 
