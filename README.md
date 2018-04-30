@@ -3,6 +3,10 @@
 TODOs: 
 - Add GIFs & docs
 
+- Enumerate loaded classes
+
+      $ frida -U com.pkg -e 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' > pkg.classes
+
 - Extract modules from APK
 
         $ frida -Uq com.android. -e "Process.enumerateModules({onMatch: function(m){console.log('-' + m.name)},onComplete:function(){}})"
