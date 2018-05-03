@@ -58,3 +58,9 @@ TODOs:
             return this(stringArgument);
         };
 
+
+
+References overview:
+
+https://techblog.mediaservice.net/2017/09/tracing-arbitrary-methods-and-function-calls-on-android-and-ios/
+
