@@ -61,27 +61,25 @@ TODOs:
 * Hook Native (JNI)
 ```
 Interceptor.attach(Module.findExportByName(null, "dlopen"), {
-	onEnter: function (args) {
-	    var lib = Memory.readUtf8String(args[0]);
-	    console.log("dlopen called with: " + lib);
-	    this.lib = lib; // pass argument to onLeave
-	},
-	onLeave: function (retval) {
-	    console.log("dlopen called exit with: " + this.lib);
-	    if (this.lib.endsWith("libfoo.so")) {
-		console.log("ret: " + retval);
-		var libtmessages_base = Process.findModuleByName("libfoo.so").base; // Module.findBaseAddress(‘foo.so’).add(0x1234)
-		console.log("libtmessages_base: " + libtmessages_base);
-            // find function address with $ nm -CD libfoo.so | grep "SomeClass::someFunction"
-		var i = Interceptor.attach(libtmessages_base.add(0x0021e5b4), {
-		    onEnter: function(args) {
-		        console.log('initttt ');
-		    }
-		});
-		console.log("i: " + i);
-	    }
-	}
-	});
+    onEnter: function(args) {
+        var lib = Memory.readUtf8String(args[0]);
+        console.log("dlopen called with: " + lib);
+        this.lib = lib; // pass argument to onLeave
+    },
+    onLeave: function(retval) {
+        console.log("dlopen called exit with: " + this.lib);
+        if (this.lib.endsWith("libfoo.so")) {
+            console.log("ret: " + retval);
+            var funcAddr = 0x0021e5b4; // find function address with $ nm -CD libfoo.so | grep "SomeClass::someFunction"
+            var offset = Module.findBaseAddress("libfoo.so"); // Process.findModuleByName("libfoo.so").base) will also work     
+            Interceptor.attach(offset.add(funcAddr), {
+                onEnter: function(args) {
+                    console.log('hooked !');
+                }
+            });
+        }
+    }
+});
 ```
 
 
