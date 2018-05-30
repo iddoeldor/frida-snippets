@@ -70,7 +70,7 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
         console.log("dlopen called exit with: " + this.lib);
         if (this.lib.endsWith("libfoo.so")) {
             console.log("ret: " + retval);
-            var funcAddr = 0x0021e5b4; // find function address with $ nm -CD libfoo.so | grep "SomeClass::someFunction"
+            var funcAddr = 0x0021e5b4; // find function address with $ nm --demangle --dynamic libfoo.so | grep "SomeClass::someFunction"
             var offset = Module.findBaseAddress("libfoo.so"); // Process.findModuleByName("libfoo.so").base) will also work     
             Interceptor.attach(offset.add(funcAddr), {
                 onEnter: function(args) {
