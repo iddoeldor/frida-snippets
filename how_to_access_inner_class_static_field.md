@@ -1,3 +1,4 @@
+### How to access inner class static field
 ```
 package tech.yusi.fridademo;
 
