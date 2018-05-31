@@ -1,8 +1,5 @@
 ### learn-frida-the-hard-way
 
-TODOs: 
-- Add GIFs & docs
-
 - Enumerate loaded classes
 
       $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' -o pkg.classes
@@ -82,6 +79,8 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
 });
 ```
 
+TODOs: 
+- Add GIFs & docs
 
 References overview:
 
