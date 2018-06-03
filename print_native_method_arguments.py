@@ -22,14 +22,12 @@ def switch(x, i):
     }[x]
 
 
-arguments_json_script = '{'
+arguments_js = ['{']
 for i in range(len(method_signature)):
     arg = method_signature[i]
     i = str(i + 1)
-    js_line = i + ': '
-    js_line += switch(arg, i)
-    arguments_json_script += js_line
-arguments_json_script += '}'
+    arguments_js.append(i + ': ' + switch(arg, i))
+arguments_js = ''.join(arguments_js) + '}'
 
 
 def on_message(m, _data):
@@ -61,7 +59,7 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
 });
 """
 replaceMap = {
-    '{{arguments}}': arguments_json_script,
+    '{{arguments}}': arguments_js,
     '{{methodAddress}}': '0x' + method_address,
     '{{moduleName}}': MODULE_NAME
 }
