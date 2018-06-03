@@ -23,7 +23,8 @@ def switch(x, i):
 
 
 arguments_js = ['{']
-for i in range(len(method_signature)):
+num_arguments = len(method_signature)
+for i in range(num_arguments):
     arg = method_signature[i]
     i = str(i + 1)
     arguments_js.append(i + ': ' + switch(arg, i))
