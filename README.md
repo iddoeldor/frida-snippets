@@ -57,24 +57,26 @@
 
 * Hook Native (JNI)
 ```
+var moduleName = "libfoo.so"; 
+var nativeFuncAddr = 0x1234; // $ nm --demangle --dynamic libfoo.so | grep "Class::method("
+
 Interceptor.attach(Module.findExportByName(null, "dlopen"), {
     onEnter: function(args) {
-        var lib = Memory.readUtf8String(args[0]);
-        console.log("dlopen called with: " + lib);
-        this.lib = lib; // pass argument to onLeave
+        this.lib = Memory.readUtf8String(args[0]);
+        console.log("dlopen called with: " + this.lib);
     },
     onLeave: function(retval) {
-        console.log("dlopen called exit with: " + this.lib);
-        if (this.lib.endsWith("libfoo.so")) {
+        if (this.lib.endsWith(moduleName)) {
             console.log("ret: " + retval);
-            var funcAddr = 0x0021e5b4; // find function address with $ nm --demangle --dynamic libfoo.so | grep "SomeClass::someFunction"
-            var offset = Module.findBaseAddress("libfoo.so"); // Process.findModuleByName("libfoo.so").base) will also work     
-            Interceptor.attach(offset.add(funcAddr), {
+            var baseAddr = Module.findBaseAddress(moduleName);
+            Interceptor.attach(baseAddr.add(nativeFuncAddr), {
                 onEnter: function(args) {
-                    console.log('hooked !');                 
-                    Thread.backtrace(this.context, Backtracer.ACCURATE).forEach(function(addr) {
-                        console.log('\t' + addr + ' : ' + DebugSymbol.fromAddress(addr));
-                    });
+                    console.log("[-] hook invoked");
+                    console.log(JSON.stringify({
+                        a1: args[1].toInt32(),
+                        a2: Memory.readUtf8String(Memory.readPointer(args[2])),
+                        a3: Boolean(args[3])
+                    }, null, '\t'));
                 }
             });
         }
