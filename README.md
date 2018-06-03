@@ -71,7 +71,10 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
             var offset = Module.findBaseAddress("libfoo.so"); // Process.findModuleByName("libfoo.so").base) will also work     
             Interceptor.attach(offset.add(funcAddr), {
                 onEnter: function(args) {
-                    console.log('hooked !');
+                    console.log('hooked !');                 
+                    Thread.backtrace(this.context, Backtracer.ACCURATE).forEach(function(addr) {
+                        console.log('\t' + addr + ' : ' + DebugSymbol.fromAddress(addr));
+                    });
                 }
             });
         }
