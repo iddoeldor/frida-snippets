@@ -6,30 +6,6 @@ MODULE_NAME = 'libfoo.so'
 FULL_METHOD_NAME = 'SomeCppClass::someMethod('
 APP_NAME = 'com.app.name'
 
-stdoutput = subprocess.getoutput('nm -DC %s | grep "%s"' % (MODULE_NAME, FULL_METHOD_NAME))
-output_split = stdoutput.split()
-method_address = output_split[0]
-method_desc = ''.join(output_split[2:])
-method_signature = method_desc[method_desc.index('(') + 1: -1].split(',')
-
-
-def switch(x, i):
-    return {
-        'unsignedint': 'args[' + i + '].toInt32(),',
-        'int': 'args[' + i + '].toInt32(),',
-        'std::string': 'Memory.readUtf8String(Memory.readPointer(args[' + i + '])),',
-        'bool': 'Boolean(args[' + i + ']),'
-    }[x]
-
-
-arguments_js = ['{']
-num_arguments = len(method_signature)
-for i in range(num_arguments):
-    arg = method_signature[i]
-    i = str(i + 1)
-    arguments_js.append(i + ': ' + switch(arg, i))
-arguments_js = ''.join(arguments_js) + '}'
-
 
 def on_message(m, _data):
     if m['type'] == 'send':
@@ -38,34 +14,48 @@ def on_message(m, _data):
         print(m)
 
 
+def switch(argument_key, idx):
+    argument_key = argument_key.replace(' ', '')
+    return '%d: %s' % (idx, {
+        'unsignedint': 'args[%d].toInt32(),',
+        'int': 'args[%d].toInt32(),',
+        'std::string': 'Memory.readUtf8String(Memory.readPointer(args[%d])),',
+        'bool': 'Boolean(args[%d]),'
+    }[argument_key] % idx)
+
+
 js_script = """
-var moduleName = "{{moduleName}}";
-var nativeFuncAddr = {{methodAddress}};
+var moduleName = "{{moduleName}}",
+    nativeFuncAddr = {{methodAddress}};
 
 Interceptor.attach(Module.findExportByName(null, "dlopen"), {
     onEnter: function(args) {
         this.lib = Memory.readUtf8String(args[0]);
-        console.log("dlopen called with: " + this.lib);
+        console.log("[*] dlopen called with: " + this.lib);
     },
     onLeave: function(retval) {
         if (this.lib.endsWith(moduleName)) {
             Interceptor.attach(Module.findBaseAddress(moduleName).add(nativeFuncAddr), {
                 onEnter: function(args) {
-                    console.log("[+] hook invoked");
-                    console.log(JSON.stringify({{arguments}}, null, '\t'));
+                    console.log("[*] hook invoked", JSON.stringify({{arguments}}, null, '\t'));
                 }
             });
         }
     }
 });
 """
-replaceMap = {
-    '{{arguments}}': arguments_js,
-    '{{methodAddress}}': '0x' + method_address,
-    '{{moduleName}}': MODULE_NAME
-}
-for k, v in replaceMap.items():
+output = subprocess.getoutput('nm --demangle --dynamic %s | grep "%s"' % (MODULE_NAME, FULL_METHOD_NAME))
+print('[+] nm output:', output)
+# extract the arguments which are inside parenthesis in `nm -DC` stdout
+method_args = re.search(r'\((.*?)\)', output).group(1).split(',')
+print('[+] Method arguments:', method_args)
+for k, v in {
+    '{{moduleName}}': MODULE_NAME,
+    '{{methodAddress}}': '0x' + output.split()[0],
+    '{{arguments}}': '{' + ''.join([switch(method_args[i], i + 1) for i in range(len(method_args))]) + '}'
+}.items():
     js_script = js_script.replace(k, v)
+print('[+] JS Script:\n', js_script)
 
 device = frida.get_usb_device()
 pid = device.spawn([APP_NAME])
@@ -75,3 +65,6 @@ script.on('message', on_message)
 script.load()
 device.resume(APP_NAME)
 sys.stdin.read()
+
+# TODO if no arguments > print no arguments
+# TODO handle other arguments, [long, longlong..]
