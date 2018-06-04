@@ -21,7 +21,7 @@ def switch(argument_key, idx):
     }[argument_key] % idx)
 
 
-def main(app_id, module_id):
+def main(app_id, module_id, method):
     import subprocess
     output = subprocess.getoutput('nm --demangle --dynamic %s' % module_id)
 
@@ -41,10 +41,17 @@ def main(app_id, module_id):
         except ValueError:
             pass
 
-    for idx, symbol in enumerate(symbols):
-        print("%4d) %s (%d)" % (idx, symbol['name'], len(symbol['args'])))
+    selection_idx = None
 
-    selection_idx = input("Enter symbol number: ")
+    for idx, symbol in enumerate(symbols):
+        if method is None:
+            print("%4d) %s (%d)" % (idx, symbol['name'], len(symbol['args'])))
+        elif method == symbol['name']:
+            selection_idx = idx
+            break
+
+    if selection_idx is None:
+        selection_idx = input("Enter symbol number: ")
 
     method = symbols[int(selection_idx)]
     print('[+] Selected method: %s' % method['name'])
@@ -97,8 +104,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--app', help='app identifier "com.company.app"')
     parser.add_argument('--module', help='loaded module name "libfoo.2.so"')
+    parser.add_argument('--method', help='method name "SomeClass::someMethod", if empty it will print select-list')
     args = parser.parse_args()
-    main(args.app, args.module)
+    main(args.app, args.module, args.method)
 
 
 """
