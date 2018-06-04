@@ -7,6 +7,7 @@ def on_message(m, _data):
 
 def switch(argument_key, idx):
     """
+    c/c++ variable type to javascript reader switch implementation
     # TODO handle other arguments, [long, longlong..]
     :param argument_key: variable type
     :param idx: index in symbols array
@@ -21,61 +22,44 @@ def switch(argument_key, idx):
     }[argument_key] % idx)
 
 
-def main(app_id, module_id, method):
+def list_symbols_from_object_files(module_id):
     import subprocess
-    output = subprocess.getoutput('nm --demangle --dynamic %s' % module_id)
+    return subprocess.getoutput('nm --demangle --dynamic %s' % module_id)
 
-    symbols = []
-    for line in output.splitlines():
-        try:
-            split = line.split()
-            raw_arguments = line[line.index('(') + 1:-1]
-            argument_list = [] if len(raw_arguments) is 0 else raw_arguments.split(',')
-            if len(argument_list) > 0:  # ignore methods without arguments
-                symbols.append({
-                    'address': split[0],
-                    'type': split[1],  # @see Symbol Type Table
-                    'name': split[2][:split[2].index('(')],  # method name
-                    'args': argument_list
-                })
-        except ValueError:
-            pass
 
-    selection_idx = None
+def parse_nm_output(nm_stdout, symbols):
+    for line in nm_stdout.splitlines():
+        split = line.split()
+        open_parenthesis_idx = line.find('(')
+        raw_arguments = [] if open_parenthesis_idx == -1 else line[open_parenthesis_idx + 1:-1]
+        if len(raw_arguments) > 0:  # ignore methods without arguments
+            raw_argument_list = raw_arguments.split(',')
+            symbols.append({
+                'address': split[0],
+                'type': split[1],  # @see Symbol Type Table
+                'name': split[2][:split[2].find('(')],  # method name
+                'args': raw_argument_list
+            })
 
-    for idx, symbol in enumerate(symbols):
-        if method is None:
-            print("%4d) %s (%d)" % (idx, symbol['name'], len(symbol['args'])))
-        elif method == symbol['name']:
-            selection_idx = idx
-            break
 
-    if selection_idx is None:
-        selection_idx = input("Enter symbol number: ")
-
-    method = symbols[int(selection_idx)]
-    print('[+] Selected method: %s' % method['name'])
-    print('[+] Method arguments: %s' % method['args'])
-
+def get_js_script(method, module_id):
     js_script = """
-    var moduleName = "{{moduleName}}",
-        nativeFuncAddr = {{methodAddress}};
-
-    Interceptor.attach(Module.findExportByName(null, "dlopen"), {
-        onEnter: function(args) {
-            this.lib = Memory.readUtf8String(args[0]);
-            console.log("[*] dlopen called with: " + this.lib);
-        },
-        onLeave: function(retval) {
-            if (this.lib.endsWith(moduleName)) {
-                Interceptor.attach(Module.findBaseAddress(moduleName).add(nativeFuncAddr), {
-                    onEnter: function(args) {
-                        console.log("[*] hook invoked", JSON.stringify({{arguments}}, null, '\t'));
-                    }
-                });
+        var moduleName = "{{moduleName}}", nativeFuncAddr = {{methodAddress}};
+        Interceptor.attach(Module.findExportByName(null, "dlopen"), {
+            onEnter: function(args) {
+                this.lib = Memory.readUtf8String(args[0]);
+                console.log("[*] dlopen called with: " + this.lib);
+            },
+            onLeave: function(retval) {
+                if (this.lib.endsWith(moduleName)) {
+                    Interceptor.attach(Module.findBaseAddress(moduleName).add(nativeFuncAddr), {
+                        onEnter: function(args) {
+                            console.log("[*] hook invoked", JSON.stringify({{arguments}}, null, '\t'));
+                        }
+                    });
+                }
             }
-        }
-    });
+        });
     """
     replace_map = {
         '{{moduleName}}': module_id,
@@ -85,23 +69,50 @@ def main(app_id, module_id, method):
     for k, v in replace_map.items():
         js_script = js_script.replace(k, v)
     print('[+] JS Script:\n', js_script)
+    return js_script
 
-    import frida
-    device = frida.get_usb_device()
+
+def main(app_id, module_id, method):
+    nm_stdout = list_symbols_from_object_files(module_id)
+
+    symbols = []
+    parse_nm_output(nm_stdout, symbols)
+
+    selection_idx = None
+    for idx, symbol in enumerate(symbols):
+        if method is None:  # if --method flag is not passed
+            print("%4d) %s (%d)" % (idx, symbol['name'], len(symbol['args'])))
+        elif method == symbol['name']:
+            selection_idx = idx
+            break
+    if selection_idx is None:
+        if method is None:
+            selection_idx = input("Enter symbol number: ")
+        else:
+            print('[+] Method not found, remove method flag to get list of methods to select from, `nm` stdout:')
+            print(nm_stdout)
+            exit(2)
+
+    method = symbols[int(selection_idx)]
+    print('[+] Selected method: %s' % method['name'])
+    print('[+] Method arguments: %s' % method['args'])
+
+    from frida import get_usb_device
+    device = get_usb_device()
     pid = device.spawn([app_id])
     session = device.attach(pid)
-    script = session.create_script(js_script)
+    script = session.create_script(get_js_script(method, module_id))
     script.on('message', on_message)
     script.load()
     device.resume(app_id)
-
-    import sys
-    sys.stdin.read()
+    # keep hook alive
+    from sys import stdin
+    stdin.read()
 
 
 if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser()
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
     parser.add_argument('--app', help='app identifier "com.company.app"')
     parser.add_argument('--module', help='loaded module name "libfoo.2.so"')
     parser.add_argument('--method', help='method name "SomeClass::someMethod", if empty it will print select-list')
