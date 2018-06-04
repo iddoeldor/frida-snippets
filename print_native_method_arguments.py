@@ -1,11 +1,3 @@
-import sys
-import frida
-import subprocess
-
-APP_NAME = 'com.app.sample'
-MODULE_NAME = 'libfoo.so'
-
-
 def on_message(m, _data):
     if m['type'] == 'send':
         print(m['payload'])
@@ -14,78 +6,103 @@ def on_message(m, _data):
 
 
 def switch(argument_key, idx):
+    """
+    # TODO handle other arguments, [long, longlong..]
+    :param argument_key: variable type
+    :param idx: index in symbols array
+    :return: javascript to read the type of variable
+    """
     argument_key = argument_key.replace(' ', '')
     return '%d: %s' % (idx, {
-        'unsignedint': 'args[%d].toInt32(),',
         'int': 'args[%d].toInt32(),',
+        'unsignedint': 'args[%d].toInt32(),',
         'std::string': 'Memory.readUtf8String(Memory.readPointer(args[%d])),',
-        'bool': 'Boolean(args[%d]),'  # TODO handle other arguments, [long, longlong..]
+        'bool': 'Boolean(args[%d]),'
     }[argument_key] % idx)
 
 
-js_script = """
-var moduleName = "{{moduleName}}",
-    nativeFuncAddr = {{methodAddress}};
+def main(app_id, module_id):
+    import subprocess
+    output = subprocess.getoutput('nm --demangle --dynamic %s' % module_id)
 
-Interceptor.attach(Module.findExportByName(null, "dlopen"), {
-    onEnter: function(args) {
-        this.lib = Memory.readUtf8String(args[0]);
-        console.log("[*] dlopen called with: " + this.lib);
-    },
-    onLeave: function(retval) {
-        if (this.lib.endsWith(moduleName)) {
-            Interceptor.attach(Module.findBaseAddress(moduleName).add(nativeFuncAddr), {
-                onEnter: function(args) {
-                    console.log("[*] hook invoked", JSON.stringify({{arguments}}, null, '\t'));
-                }
-            });
+    symbols = []
+    for line in output.splitlines():
+        try:
+            split = line.split()
+            raw_arguments = line[line.index('(') + 1:-1]
+            argument_list = [] if len(raw_arguments) is 0 else raw_arguments.split(',')
+            if len(argument_list) > 0:  # ignore methods without arguments
+                symbols.append({
+                    'address': split[0],
+                    'type': split[1],  # @see Symbol Type Table
+                    'name': split[2][:split[2].index('(')],  # method name
+                    'args': argument_list
+                })
+        except ValueError:
+            pass
+
+    for idx, symbol in enumerate(symbols):
+        print("%4d) %s (%d)" % (idx, symbol['name'], len(symbol['args'])))
+
+    selection_idx = input("Enter symbol number: ")
+
+    method = symbols[int(selection_idx)]
+    print('[+] Selected method: %s' % method['name'])
+    print('[+] Method arguments: %s' % method['args'])
+
+    js_script = """
+    var moduleName = "{{moduleName}}",
+        nativeFuncAddr = {{methodAddress}};
+
+    Interceptor.attach(Module.findExportByName(null, "dlopen"), {
+        onEnter: function(args) {
+            this.lib = Memory.readUtf8String(args[0]);
+            console.log("[*] dlopen called with: " + this.lib);
+        },
+        onLeave: function(retval) {
+            if (this.lib.endsWith(moduleName)) {
+                Interceptor.attach(Module.findBaseAddress(moduleName).add(nativeFuncAddr), {
+                    onEnter: function(args) {
+                        console.log("[*] hook invoked", JSON.stringify({{arguments}}, null, '\t'));
+                    }
+                });
+            }
         }
+    });
+    """
+    replace_map = {
+        '{{moduleName}}': module_id,
+        '{{methodAddress}}': '0x' + method['address'],
+        '{{arguments}}': '{' + ''.join([switch(method['args'][i], i + 1) for i in range(len(method['args']))]) + '}'
     }
-});
-"""
-output = subprocess.getoutput('nm --demangle --dynamic %s' % MODULE_NAME)
+    for k, v in replace_map.items():
+        js_script = js_script.replace(k, v)
+    print('[+] JS Script:\n', js_script)
 
-symbols = []
-for line in output.splitlines():
-    try:
-        split = line.split()
-        raw_arguments = line[line.index('(') + 1:-1]
-        argument_list = [] if len(raw_arguments) is 0 else raw_arguments.split(',')
-        symbols.append({
-            'address': split[0],
-            'type': split[1],
-            'name': split[2][:split[2].index('(')],
-            'args': argument_list
-        })
-    except ValueError:
-        pass
+    import frida
+    device = frida.get_usb_device()
+    pid = device.spawn([app_id])
+    session = device.attach(pid)
+    script = session.create_script(js_script)
+    script.on('message', on_message)
+    script.load()
+    device.resume(app_id)
 
-for idx, symbol in enumerate(symbols):
-    print("{}) {} ".format(idx, symbol['name'] + ' ' + str(len(symbol['args']))))
-selection_idx = input("Enter symbol number: ")
-method = symbols[int(selection_idx)]
-print('[+] Selected method: %s' % method['name'])
-print('[+] Method arguments: %s' % method['args'])
+    import sys
+    sys.stdin.read()
 
-for k, v in {
-    '{{moduleName}}': MODULE_NAME,
-    '{{methodAddress}}': '0x' + method['address'],
-    '{{arguments}}': '{' + ''.join([switch(method['args'][i], i + 1) for i in range(len(method['args']))]) + '}'
-}.items():
-    js_script = js_script.replace(k, v)
-print('[+] JS Script:\n', js_script)
 
-device = frida.get_usb_device()
-pid = device.spawn([APP_NAME])
-session = device.attach(pid)
-script = session.create_script(js_script)
-script.on('message', on_message)
-script.load()
-device.resume(APP_NAME)
-sys.stdin.read()
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--app', help='app identifier "com.company.app"')
+    parser.add_argument('--module', help='loaded module name "libfoo.2.so"')
+    args = parser.parse_args()
+    main(args.app, args.module)
+
 
 """
-Symbol Type:
+Symbol Type Table:
     "A" The symbol's value is absolute, and will	not be changed by further linking.
     "B" The symbol is in the uninitialized data section (known as BSS).
     "C" The symbol is common.  Common symbols are uninitialized data.
