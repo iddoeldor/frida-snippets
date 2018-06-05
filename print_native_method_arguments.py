@@ -73,6 +73,15 @@ def get_js_script(method, module_id):
 
 
 def main(app_id, module_id, method):
+    """
+    $ python3.x+ script.py --method SomeClass::someMethod --app com.company.app --module libfoo.so
+    :param app_id: application identifier / bundle id 
+    :param module_id: shared object identifier / known suffix, will iterate loaded modules (@see dlopen) 
+    :param method: method/symbol name
+    :return: hook native method and print arguments when invoked
+    """
+    # TODO extract all app's modules via `adb shell -c 'ls -lR /data/app/' + app_if + '*' | grep "\.so"`
+
     nm_stdout = list_symbols_from_object_files(module_id)
 
     symbols = []
@@ -122,17 +131,15 @@ if __name__ == '__main__':
 
 """
 Symbol Type Table:
-    "A" The symbol's value is absolute, and will	not be changed by further linking.
+    "A" The symbol's value is absolute, and will not be changed by further linking.
     "B" The symbol is in the uninitialized data section (known as BSS).
     "C" The symbol is common.  Common symbols are uninitialized data.
-       When linking, multiple common symbols may appear	with the same
-       name.  If the symbol is defined anywhere, the common symbols
-       are treated as undefined	references.
+       When linking, multiple common symbols may appear	with the same name.  
+       If the symbol is defined anywhere, the common symbols are treated as undefined	references.
     "D" The symbol is in the initialized data section.
     "G" The symbol is in an initialized data section for small objects.
-       Some object file formats permit more efficient access to small
-       data objects, such as a global int variable as opposed to a
-       large global array.
+       Some object file formats permit more efficient access to small data objects, such as a global int variable as 
+       opposed to a large global array.
     "I" The symbol is an indirect reference to another symbol.
        This is a GNU extension to the a.out object file format which is rarely used.
     "N" The symbol is a debugging symbol.
@@ -140,22 +147,18 @@ Symbol Type Table:
     "S" The symbol is in an uninitialized data section for small objects.
     "T" The symbol is in the text (code) section.
     "U" The symbol is undefined.
-    "V" The symbol is a weak object. When a weak defined symbol is
-       linked with a normal defined symbol, the normal defined symbol
-       is used with no error.  When a weak undefined symbol is linked
-       and the symbol is not defined, the value of the weak symbol
-       becomes zero with no error.
-    "W" The symbol is a weak symbol that has not been specifically
-       tagged as a weak object symbol. When a weak defined symbol is
-       linked with a normal defined symbol, the normal defined symbol
-       is used with no error.  When a weak undefined symbol is linked
-       and the symbol is not defined, the value of the symbol is
-       determined in a system-specific manner without error.  On some
-       systems, uppercase indicates that a default value has been
-       specified.
-    "-" The symbol is a stabs symbol in an a.out object file.  In this
-       case, the next values printed are the stabs other field, the
-       stabs desc field, and the stab type.  Stabs symbols are used to
-       hold debugging information.
+    "V" The symbol is a weak object. When a weak defined symbol is linked with a normal defined symbol, 
+        the normal defined symbol is used with no error.  
+        When a weak undefined symbol is linked and the symbol is not defined, the value of the weak symbol becomes 
+        zero with no error.
+    "W" The symbol is a weak symbol that has not been specifically tagged as a weak object symbol. 
+        When a weak defined symbol is linked with a normal defined symbol, 
+        the normal defined symbol is used with no error.  
+        When a weak undefined symbol is linked and the symbol is not defined, the value of the symbol is determined 
+        in a system-specific manner without error.  
+        On some systems, uppercase indicates that a default value has been specified.
+    "-" The symbol is a stabs symbol in an a.out object file.  
+        In this case, the next values printed are the stabs other field, the stabs desc field, and the stab type.  
+        Stabs symbols are used to hold debugging information.
     "?" The symbol type is unknown, or object file format specific.
 """
