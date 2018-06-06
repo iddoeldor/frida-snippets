@@ -100,6 +100,33 @@ Java.perform(function() {
   };
 });
 ```
+
+* (iOS) Extract UUID for specific path when attached to an app
+```
+var PLACEHOLDER = '{UUID}';
+function extractUUIDfromPath(path) {
+    var bundleIdentifier = String(ObjC.classes.NSBundle.mainBundle().objectForInfoDictionaryKey_('CFBundleIdentifier'));
+    var path_prefix = path.substr(0, path.indexOf(PLACEHOLDER));
+    var plist_metadata = '/.com.apple.mobile_container_manager.metadata.plist';
+    var folders = ObjC.classes.NSFileManager.defaultManager().contentsOfDirectoryAtPath_error_(path_prefix, NULL);
+    for (var i = 0, l = folders.count(); i < l; i++) {
+        var uuid = folders.objectAtIndex_(i);
+        var metadata = path_prefix + uuid + plist_metadata;
+        var dict = ObjC.classes.NSMutableDictionary.alloc().initWithContentsOfFile_(metadata);
+        var enumerator = dict.keyEnumerator();
+        var key;
+        while ((key = enumerator.nextObject()) !== null) {
+            if (key == 'MCMMetadataIdentifier') {
+                var appId = String(dict.objectForKey_(key));
+                if (appId.indexOf(bundleIdentifier) != -1) {
+                    return path.replace(PLACEHOLDER, uuid);
+                }
+            }
+        }
+    }
+}
+console.log( extractUUIDfromPath('/var/mobile/Containers/Data/Application/' + PLACEHOLDER + '/Documents') );
+```
 TODOs: 
 - Add GIFs & docs
 
