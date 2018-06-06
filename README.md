@@ -134,4 +134,4 @@ References overview:
 
 * https://techblog.mediaservice.net/2017/09/tracing-arbitrary-methods-and-function-calls-on-android-and-ios/
 * https://zhiwei.li/text/2016/02/01/%E7%BC%96%E8%AF%91frida/
-
+* https://kov4l3nko.github.io/blog/2018-05-27-sll-pinning-hook-sectrustevaluate/
