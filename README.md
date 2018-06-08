@@ -2,10 +2,13 @@
  - [Enumerate loaded classes](#enumerate-loaded-classes) 
  - [Extract modules from APK](#extract-modules-from-apk) 
  - [Get methods from .so file](#get-methods-from-so-file)
- - [SQLite hook example](#sqlite-hook-example)
+ - [SQLite hook example](#sqlite-hook)
  - [Hook Java refelaction](#hook-refelaction)
  - [Hook constructor](#hook-constructor)
- 
+ - [Hook JNI](#hook-jni)
+ - [Print all runtime strings & Stacktrace](#print-runtime-strings)
+ - [Find iOS application UUID](#find-ios-application-uuid)
+ - [TODO list](#todos)
  
 #### Enumerate loaded classes
 ```
@@ -62,7 +65,8 @@ Java.use('java.lang.StringBuilder').$init.overload('java.lang.String').implement
       return this(stringArgument);
 };
 ```
-* Hook Native (JNI)
+#### Hook JNI
+Hook native method and print arguments
 ```
 var moduleName = "libfoo.so"; 
 var nativeFuncAddr = 0x1234; // $ nm --demangle --dynamic libfoo.so | grep "Class::method("
@@ -90,7 +94,8 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
     }
 });
 ```
-* Print all runtime strings & stacktrace
+#### Print runtime strings 
+Print created StringBuilder & StringBuffer & Stacktrace
 ```
 Java.perform(function() {
   ['java.lang.StringBuilder', 'java.lang.StringBuffer'].forEach(function(clazz, i) {
@@ -108,8 +113,8 @@ Java.perform(function() {
   };
 });
 ```
-
-* (iOS) Extract UUID for specific path when attached to an app
+#### Find iOS application UUID 
+Get UUID for specific path when attached to an app
 ```
 var PLACEHOLDER = '{UUID}';
 function extractUUIDfromPath(path) {
@@ -135,11 +140,12 @@ function extractUUIDfromPath(path) {
 }
 console.log( extractUUIDfromPath('/var/mobile/Containers/Data/Application/' + PLACEHOLDER + '/Documents') );
 ```
-TODOs: 
+
+
+#### TODOs 
 - Add GIFs & docs
 
-References overview:
-
+- References overview:
 * https://techblog.mediaservice.net/2017/09/tracing-arbitrary-methods-and-function-calls-on-android-and-ios/
 * https://zhiwei.li/text/2016/02/01/%E7%BC%96%E8%AF%91frida/
 * https://kov4l3nko.github.io/blog/2018-05-27-sll-pinning-hook-sectrustevaluate/
