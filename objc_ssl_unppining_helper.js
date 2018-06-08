@@ -1,5 +1,5 @@
 /*
-* By LotemBY *
+* By http://github.com/LotemBY *
 
 This is a frida script for unpinning and reversing of ObjC applications.
 Intercept method's which match regex.
