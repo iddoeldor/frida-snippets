@@ -1,11 +1,8 @@
 /*
-=========================
-  ObjC Unppining Helper
- 		By Lotem
-=========================
+* By LotemBY *
 
 This is a frida script for unpinning and reversing of ObjC applications.
-It is used to list and intercept methods in moudles by regexs.
+Intercept method's which match regex.
 
 You may change the following regex arrays to match your needs:
 */
@@ -28,8 +25,7 @@ To run this script with frida on iPhone, follow these steps:
 	5. Type in console "frida -U <APP PROCCESS NAME> -l <PATH TO THIS SCRIPT>" to run this script
 	6. Now you should use the app to trigger some of the intercepted methods
 */
-
-// The "main" method. Going over all the moudles and all the methods, and trying to intercept each one which matches the regexs.
+var onCompleteCallback = function (retval) {};
 setImmediate(function () {
 	if (!ObjC.available) {
 		console.log("[-] Objective-C Runtime is not available!");
@@ -65,12 +61,11 @@ setImmediate(function () {
 						}
 					}
 				},
-				onComplete: function (retval) {}
+				onComplete: onCompleteCallback
 			});
 		},
-		onComplete: function (retval) {}
+		onComplete: onCompleteCallback
 	});
-
 
 	console.log("[*] Completed!");
 	console.log("=======================================================\n\n");
@@ -78,12 +73,10 @@ setImmediate(function () {
 
 // Return if 'str' match any of the regexs in the array 'regexList'
 function matchesRegex(regexList, str) {
-	for (var i = 0; i < regexList.length; i++) {
-		if (str.search(regexList[i]) != -1) {
-			return true;
-		}
-	}
-
+	regexList.forEach(function(el) {
+		if (str.search(el) != -1) 
+			return true;		
+	});
 	return false;
 }
 
@@ -94,7 +87,7 @@ function intercept(module, func) {
 	    Interceptor.attach(Module.findExportByName(module, func), {
 	      	onEnter: function(args) {
 	      		console.log("[*] Method CALL:\t\"" + func + "\" called!");
-            },  
+            	},  
 	        onLeave: function (retval) {
 	            console.log("[*] Method RETURN:\t\"" + func + "\" (return value: " + retval + ")");
 
@@ -106,7 +99,7 @@ function intercept(module, func) {
 	    });
 
 	    return true;
-	} catch(err) {
+	} catch (err) {
 		return false;
 	}
 }
