@@ -5,7 +5,7 @@
  - [SQLite hook example](#sqlite-hook)
  - [Hook Java refelaction](#hook-refelaction)
  - [Hook constructor](#hook-constructor)
- - [Hook JNI](#hook-jni)
+ - [Hook JNI by address](#hook-jni-by-address)
  - [Print all runtime strings & Stacktrace](#print-runtime-strings)
  - [Find iOS application UUID](#find-ios-application-uuid)
  - [Execute shell command](#execute-shell-command)
@@ -66,8 +66,8 @@ Java.use('java.lang.StringBuilder').$init.overload('java.lang.String').implement
       return this(stringArgument);
 };
 ```
-#### Hook JNI
-Hook native method and print arguments
+#### Hook JNI by address
+Hook native method by module name and method address and print arguments
 ```
 var moduleName = "libfoo.so"; 
 var nativeFuncAddr = 0x1234; // $ nm --demangle --dynamic libfoo.so | grep "Class::method("
