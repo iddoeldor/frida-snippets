@@ -1,17 +1,24 @@
-### learn-frida-the-hard-way
-
-* Enumerate loaded classes
+# Contents
+ - [Enumerate loaded classes](#enumerate-loaded-classes) 
+ - [Extract modules from APK](#extract-modules-from-apk) 
+ - [Get methods from .so file](#get-methods-from-so-file)
+ - [SQLite hook example](#sqlite-hook-example)
+ - [Hook Java refelaction](#hook-refelaction)
+ - [Hook constructor](#hook-constructor)
+ 
+ 
+#### Enumerate loaded classes
 ```
 $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' -o pkg.classes
 ```
-* Extract modules from APK
+#### Extract modules from APK
 ```
   $ frida -Uq com.android. -e "Process.enumerateModules({onMatch: function(m){console.log('-' + m.name)},onComplete:function(){}})"
   ....
   -libsqlite.so
 ```
 
-* get methods from .so file
+#### Get methods from so file
 ```
   $ adb pull /system/lib/libsqlite.so
    /system/lib/libsqlite.so: 1 file pulled. 19.7 MB/s (975019 bytes in 0.047s)
@@ -30,7 +37,7 @@ $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"on
    24878 ms  sqlite3_prepare16_v2()  <<< this is the one that holds the SQL queries
    24878 ms     | sqlite3_free()
  ```        
-* SQLite hook example (+Native)
+#### SQLite hook
 ```
 Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2'), {
       onEnter: function(args) {
@@ -39,7 +46,8 @@ Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2
 });
 ```
 
-* Hook example: `java.lang.reflect.Method#invoke(Object obj, Object... args, boolean bool)`
+#### Hook refelaction: 
+`java.lang.reflect.Method#invoke(Object obj, Object... args, boolean bool)`
 ```
   Java.use('java.lang.reflect.Method').invoke.overload('java.lang.Object', '[Ljava.lang.Object;', 'boolean').implementation = function(a,b,c) {
       console.log('hooked!', a, b, c);
@@ -47,7 +55,7 @@ Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2
   };
 ```
 
-* Hook constructor
+#### Hook constructor
 ```
 Java.use('java.lang.StringBuilder').$init.overload('java.lang.String').implementation = function(stringArgument) {
       console.log("c'tor");
@@ -82,7 +90,7 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
     }
 });
 ```
-* print all runtime strings & stacktrace
+* Print all runtime strings & stacktrace
 ```
 Java.perform(function() {
   ['java.lang.StringBuilder', 'java.lang.StringBuffer'].forEach(function(clazz, i) {
