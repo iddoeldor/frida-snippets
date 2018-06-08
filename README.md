@@ -8,7 +8,7 @@
  - [Hook JNI by address](#hook-jni-by-address)
  - [Print all runtime strings & Stacktrace](#print-runtime-strings)
  - [Find iOS application UUID](#find-ios-application-uuid)
- - [Execute shell command](https://github.com/iddoeldor/frida-snippets/blob/master/exec_shell_cmd.py)
+ - [Execute shell command](https://github.com/iddoeldor/frida-snippets/blob/master/scripts/exec_shell_cmd.py)
  - [TODO list](#todos)
  
 #### Enumerate loaded classes
