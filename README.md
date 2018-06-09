@@ -144,6 +144,8 @@ console.log( extractUUIDfromPath('/var/mobile/Containers/Data/Application/' + PL
 
 #### TODOs 
 - Add GIFs & docs
+- Add links to /scripts
+- Extend universal SSL unpinning for [ios](https://codeshare.frida.re/@dki/ios10-ssl-bypass/) [andoid 1](https://github.com/Fuzion24/JustTrustMe/blob/master/app/src/main/java/just/trust/me/Main.java) [android 2](https://codeshare.frida.re/@pcipolloni/universal-android-ssl-pinning-bypass-with-frida/)
 
 - References overview:
 * https://techblog.mediaservice.net/2017/09/tracing-arbitrary-methods-and-function-calls-on-android-and-ios/
