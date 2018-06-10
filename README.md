@@ -9,6 +9,7 @@
  - [Print all runtime strings & Stacktrace](#print-runtime-strings)
  - [Find iOS application UUID](#find-ios-application-uuid)
  - [Execute shell command](https://github.com/iddoeldor/frida-snippets/blob/master/scripts/exec_shell_cmd.py)
+ - [Dump iOS class hierarchy](#dump-ios-class-hierarchy)
  - [TODO list](#todos)
  
 #### Enumerate loaded classes
@@ -140,6 +141,54 @@ function extractUUIDfromPath(path) {
     }
 }
 console.log( extractUUIDfromPath('/var/mobile/Containers/Data/Application/' + PLACEHOLDER + '/Documents') );
+```
+
+#### Dump iOS class hierarchy
+```
+/*
+Object.keys(ObjC.classes) will list all available Objective C classes,
+but actually this will return all classes loaded in current process, including system frameworks.
+If we want something like weak_classdump, to list classes from executable it self only, Objective C runtime already provides such function objc_copyClassNamesForImage
+https://developer.apple.com/documentation/objectivec/1418485-objc_copyclassnamesforimage?language=objc
+*/
+var objc_copyClassNamesForImage = new NativeFunction(
+    Module.findExportByName(null, 'objc_copyClassNamesForImage'),
+    'pointer',
+    ['pointer', 'pointer']
+);
+var free = new NativeFunction(Module.findExportByName(null, 'free'), 'void', ['pointer']);
+var classes = new Array(count);
+var p = Memory.alloc(Process.pointerSize);
+
+Memory.writeUInt(p, 0);
+
+var path = ObjC.classes.NSBundle.mainBundle().executablePath().UTF8String();
+var pPath = Memory.allocUtf8String(path);
+var pClasses = objc_copyClassNamesForImage(pPath, p);
+var count = Memory.readUInt(p);
+for (var i = 0; i < count; i++) {
+    var pClassName = Memory.readPointer(pClasses.add(i * Process.pointerSize));
+    classes[i] = Memory.readUtf8String(pClassName);
+}
+
+free(pClasses);
+
+var tree = {};
+classes.forEach(function(name) {
+    var clazz = ObjC.classes[name];
+    var chain = [name];
+    while (clazz = clazz.$superClass) {
+        chain.unshift(clazz.$className);
+    }
+
+    var node = tree;
+    chain.forEach(function(clazz) {
+        node[clazz] = node[clazz] || {};
+        node = node[clazz];
+    });
+});
+
+send(tree);
 ```
 
 #### TODOs 
