@@ -10,6 +10,7 @@
  - [Find iOS application UUID](#find-ios-application-uuid)
  - [Execute shell command](https://github.com/iddoeldor/frida-snippets/blob/master/scripts/exec_shell_cmd.py)
  - [Dump iOS class hierarchy](#dump-ios-class-hierarchy)
+ - [Observe iOS class](#observe-ios-class)
  - [TODO list](#todos)
  
 #### Enumerate loaded classes
@@ -189,6 +190,63 @@ classes.forEach(function(name) {
 });
 
 send(tree);
+```
+
+#### Observe iOS class
+```
+function observeClass(name) {
+    var k = ObjC.classes[name];
+    k.$ownMethods.forEach(function(m) {
+        var impl = k[m].implementation;
+        console.log('Observing ' + name + ' ' + m);
+        Interceptor.attach(impl, {
+            onEnter: function(a) {
+                this.log = [];
+                this.log.push('(' + a[0] + ',' + Memory.readUtf8String(a[1]) + ') ' + name + ' ' + m);
+                if (m.indexOf(':') !== -1) {
+                    var params = m.split(':');
+                    params[0] = params[0].split(' ')[1];
+                    for (var i = 0; i < params.length - 1; i++) {
+                        try {
+                            this.log.push(params[i] + ': ' + new ObjC.Object(a[2 + i]).toString());
+                        } catch (e) {
+                            this.log.push(params[i] + ': ' + a[2 + i].toString());
+                        }
+                    }
+                }
+
+                this.log.push(
+                    Thread.backtrace(this.context, Backtracer.ACCURATE)
+                        .map(DebugSymbol.fromAddress)
+                        .join('\n')
+                );
+            },
+
+            onLeave: function(r) {
+                try {
+                    this.log.push('RET: ' + new ObjC.Object(r).toString());
+                } catch (e) {
+                    this.log.push('RET: ' + r.toString());
+                }
+
+                console.log(this.log.join('\n') + '\n');
+            }
+        });
+    });
+}
+```
+Outputs:
+`observeClass('Someclass$innerClass');
+```
+Observing Someclass$innerClass - func
+Observing Someclass$innerClass - empty
+
+(0x174670040,parameterName) Someclass$innerClass - func
+0x10048dd6c libfoo!0x3bdd6c
+0x1005a5dd0 libfoo!0x4d5dd0
+0x1832151c0 libdispatch.dylib!_dispatch_client_callout
+0x183215fb4 libdispatch.dylib!dispatch_once_f
+RET: 0xabcdef
 ```
 
 #### TODOs 
