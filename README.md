@@ -116,7 +116,7 @@ Java.perform(function() {
 });
 ```
 #### Find iOS application UUID 
-Get UUID for specific path when attached to an app
+Get UUID for specific path when attached to an app by reading plist file under each app container
 ```
 var PLACEHOLDER = '{UUID}';
 function extractUUIDfromPath(path) {
