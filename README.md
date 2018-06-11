@@ -1,6 +1,6 @@
 # Contents
  - [Enumerate loaded classes](#enumerate-loaded-classes) 
- - [Extract modules from APK](#extract-modules-from-apk) 
+ - [List modules](#list-modules) 
  - [Get methods from .so file](#get-methods-from-so-file)
  - [SQLite hook example](#sqlite-hook)
  - [Hook Java refelaction](#hook-refelaction)
@@ -17,11 +17,19 @@
 ```
 $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' -o pkg.classes
 ```
-#### Extract modules from APK
+#### List modules
 ```
   $ frida -Uq com.android. -e "Process.enumerateModules({onMatch: function(m){console.log('-' + m.name)},onComplete:function(){}})"
   ....
   -libsqlite.so
+```
+```
+Process.enumerateModulesSync()
+    .filter(function(m){ return m['path'].toLowerCase().indexOf('app') !=-1 ; })
+    .forEach(function(m) {
+        console.log(JSON.stringify(m, null, '  '));
+        // to list exports use Module.enumerateExportsSync(m.name)
+    });
 ```
 
 #### Get methods from so file
