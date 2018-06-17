@@ -90,7 +90,18 @@ Process.enumerateModulesSync()
   sqlite3_aggregate_context
   sqlite3_aggregate_count
   ....
-
+  $ rabin2 -c objc_mach0_file | head -n10
+    0x00f87a2c [0x00008ea0 - 0x0000ddfe] (sz 20318) class 0 GenericModel
+    0x00008ea0 method 0      initWithPeerId:atMessageId:allowActions:important:
+    0x000090e2 method 1      initWithPeerId:allowActions:messages:atMessageId:
+    0x00009214 method 2      dealloc
+    0x00009286 method 3      authorPeerForId:
+    0x0000940c method 4      _transitionCompleted
+    0x000097fc method 5      _loadInitialItemsAtMessageId:
+    0x00009990 method 6      _addMessages:
+    0x0000a178 method 7      _deleteMessagesWithIds:
+    0x0000a592 method 8      _replaceMessagesWithNewMessages:
+  ...
   $ frida-trace -U -i "sqlite*" com.android.
   ...
    24878 ms  sqlite3_changes()
@@ -99,7 +110,7 @@ Process.enumerateModulesSync()
    24878 ms     | sqlite3_free()
    24878 ms  sqlite3_clear_bindings()
    24878 ms  sqlite3_prepare16_v2()  <<< this is the one that holds the SQL queries
-   24878 ms     | sqlite3_free()
+   24878 ms     | sqlite3_free()  
  ```        
 #### SQLite hook
 ```
