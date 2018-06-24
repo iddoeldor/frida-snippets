@@ -11,6 +11,7 @@
  - [Find iOS application UUID](#find-ios-application-uuid)
  - [Execute shell command](https://github.com/iddoeldor/frida-snippets/blob/master/scripts/exec_shell_cmd.py)
  - [Observe iOS class](#observe-ios-class)
+ - [File access](#file-access)
  - [Webview URLS](#webview-urls)
  - [TODO list](#todos)
  
@@ -269,6 +270,16 @@ Observing Someclass$innerClass - empty
 0x1832151c0 libdispatch.dylib!_dispatch_client_callout
 0x183215fb4 libdispatch.dylib!dispatch_once_f
 RET: 0xabcdef
+```
+
+#### File Access
+iOS file access 
+```
+Interceptor.attach(ObjC.classes.NSFileManager['- fileExistsAtPath:'].implementation, {
+    onEnter: function (args) {
+        console.log('open' , ObjC.Object(args[2]).toString());
+    }
+});
 ```
 
 #### Webview URLS
