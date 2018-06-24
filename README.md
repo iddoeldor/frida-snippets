@@ -11,6 +11,7 @@
  - [Find iOS application UUID](#find-ios-application-uuid)
  - [Execute shell command](https://github.com/iddoeldor/frida-snippets/blob/master/scripts/exec_shell_cmd.py)
  - [Observe iOS class](#observe-ios-class)
+ - [Webview URLS](#webview-urls)
  - [TODO list](#todos)
  
 #### Enumerate loaded classes
@@ -268,6 +269,14 @@ Observing Someclass$innerClass - empty
 0x1832151c0 libdispatch.dylib!_dispatch_client_callout
 0x183215fb4 libdispatch.dylib!dispatch_once_f
 RET: 0xabcdef
+```
+
+#### Webview URLS
+```
+Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implementation = function (s) {
+    send(s.toString());
+    this.loadUrl.overload("java.lang.String").call(this, s);
+};
 ```
 
 #### TODOs 
