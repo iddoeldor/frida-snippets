@@ -1,6 +1,7 @@
 # Contents
  - [Enumerate loaded classes](#enumerate-loaded-classes) 
  - [Dump iOS class hierarchy](#dump-ios-class-hierarchy) 
+ - [iOS instance members](#ios-instance-members)
  - [List modules](#list-modules) 
  - [Get methods from .so file](#get-methods-from-so-file)
  - [SQLite hook example](#sqlite-hook)
@@ -67,6 +68,22 @@ classes.forEach(function(name) {
 });
 
 send(tree);
+```
+
+#### iOS instance members
+Print map of members for each class instance
+```
+ObjC.choose(ObjC.classes[clazz], {
+  onMatch: function (obj) {
+    console.log('onMatch: ', obj);
+    Object.keys(obj.$ivars).forEach(function(v) {
+        console.log('\t', v, '=', obj.$ivars[v]);
+    });
+  },
+  onComplete: function () {
+    console.log('onComplete', arguments.length);
+  }
+});
 ```
 
 #### List modules
