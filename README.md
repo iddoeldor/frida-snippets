@@ -2,6 +2,7 @@
  - [Enumerate loaded classes](#enumerate-loaded-classes) 
  - [Dump iOS class hierarchy](#dump-ios-class-hierarchy) 
  - [iOS instance members values](#ios-instance-members-values)
+ - [iOS extract cookies](#ios-extract-cookies)
  - [List modules](#list-modules) 
  - [Get methods from .so file](#get-methods-from-so-file)
  - [SQLite hook example](#sqlite-hook)
@@ -84,6 +85,15 @@ ObjC.choose(ObjC.classes[clazz], {
     console.log('onComplete', arguments.length);
   }
 });
+```
+
+#### iOS extract cookies
+```
+ var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage()['- cookies']();
+ for (var i = 0, l = cookies.count(); i < l; i++) {
+     var currentCookie = cookies['- objectAtIndex:'](i);
+     console.log(currentCookie['- Name']() + '=' + currentCookie['- Value']() + ';');
+ }
 ```
 
 #### List modules
