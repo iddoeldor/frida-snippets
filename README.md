@@ -89,11 +89,13 @@ ObjC.choose(ObjC.classes[clazz], {
 
 #### iOS extract cookies
 ```
- var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage()['- cookies']();
+ var cookieJar = [];
+ var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage().cookies();
  for (var i = 0, l = cookies.count(); i < l; i++) {
-     var currentCookie = cookies['- objectAtIndex:'](i);
-     console.log(currentCookie['- Name']() + '=' + currentCookie['- Value']() + ';');
+     var cookie = cookies['- objectAtIndex:'](i);
+     cookieJar.push(cookie.Name() + '=' + cookie.Value());
  }
+ console.log(cookieJar.join("; "));
 ```
 
 #### List modules
