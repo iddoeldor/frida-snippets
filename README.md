@@ -325,6 +325,8 @@ Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implemen
 - Extend universal SSL unpinning for [ios](https://codeshare.frida.re/@dki/ios10-ssl-bypass/) [andoid 1](https://github.com/Fuzion24/JustTrustMe/blob/master/app/src/main/java/just/trust/me/Main.java) [android 2](https://codeshare.frida.re/@pcipolloni/universal-android-ssl-pinning-bypass-with-frida/)
 
 - References overview:
+* https://github.com/mwrlabs/needle/blob/master/needle/modules/hooking/frida/script_touch-id-bypass.py
+* https://github.com/as0ler/frida-scripts/blob/master/NSFileManager_Hooker.py
 * https://techblog.mediaservice.net/2017/09/tracing-arbitrary-methods-and-function-calls-on-android-and-ios/
 * https://zhiwei.li/text/2016/02/01/%E7%BC%96%E8%AF%91frida/
 * https://kov4l3nko.github.io/blog/2018-05-27-sll-pinning-hook-sectrustevaluate/
