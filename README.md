@@ -209,7 +209,9 @@ Java.perform(function() {
       send('[' + i + '] ' + ret);
       // raising an exception to get stacktrace
       Java.perform(function() {
-        send('[*] ' + Java.use('java.lang.Exception').$new().getStackTrace().toString().split(',')[1]);
+          Java.use('java.lang.Exception').$new().getStackTrace().toString().split(',').forEach(function(l) {
+              console.log('\t[*] ' + l);
+          });
       });
     }
     return ret;
