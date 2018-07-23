@@ -1,6 +1,8 @@
 Java.perform(function() {
     var Map = Java.use('java.util.Map');
     var UnityWebRequest = Java.use('com.unity3d.player.UnityWebRequest');
+	console.log( Object.getOwnPropertyNames(Test.__proto__).join('\n') );
+
     /*
         UnityWebRequest.$init
             .overload('long', 'java.lang.String', 'java.util.Map', 'java.lang.String', 'int').implementation = function(long1, str2, map3, str4, int5) {
