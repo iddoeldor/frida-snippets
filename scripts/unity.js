@@ -16,6 +16,150 @@ function binary2hex2ascii(array, readBytesNum) {
     return result.join('');
 }
 
+function hookInputStream() {
+    Java.use('java.io.InputStream').read.overload('[B').implementation = function(b) {
+        var retval = this.read(b);
+        var resp = binary2hex2ascii(b);
+        // conditions to not print garbage packets
+        if (
+            resp.indexOf('isBot') == -1
+            && resp.indexOf(' Answer') == -1
+            && resp.indexOf('Pinged') == -1
+        ) {
+            console.log( resp );
+        }
+        if (resp.indexOf('Waiting To Show Question') != -1) {
+            console.log("\n\n\t{{ " + binary2hex2ascii( b , 1200) + " }}\n\n");
+        }
+        // TODO mimic answer packet (hook OutputStream), send to get back the answer
+        return retval;
+    };
+}
+
+function hookOutputStream() {
+    var bClass = Java.use("java.io.OutputStream");
+    bClass.write.overload('int').implementation = function(x) {
+        console.log("[1] " + x);
+        return this.write(x);
+    }
+    bClass.write.overload('[B').implementation = function(b) {
+        console.log("[2] " + binary2hex2ascii(b) );
+        return this.write(b);
+    }
+    bClass.write.overload('[B','int','int').implementation = function(b,y,z) {
+        console.log("[3] " + binary2hex2ascii(b));
+        return this.write(b,y,z);
+    }
+}
+
+function hookConstructor() {
+    var Map = Java.use('java.util.Map');
+    Java.use('com.unity3d.player.UnityWebRequest').$init
+        .overload('long', 'java.lang.String', 'java.util.Map', 'java.lang.String', 'int').implementation = function(long1, str2, map3, str4, int5) {
+        console.log(this, JSON.stringify({
+            '#1': long1,
+            method: str2,
+            headers: Java.cast(map3, Map).toString(),
+            url: str4,
+            '#5': int5
+        }, null, 2));
+        this.$init(long1, str2, map3, str4, int5);
+    };
+}
+
+function hookUploadCallback() {
+    Java.use('com.unity3d.player.UnityWebRequest').uploadCallback.overload('java.nio.ByteBuffer').implementation = function(buf1) {
+        console.log('uploadCallback', buf1);
+        this.uploadCallback(buf1);
+    };
+}
+
+// Main
+Java.perform(function() {
+
+//    hookInputStream();
+    hookOutputStream();
+//    hookConstructor();
+//    hookUploadCallback();
+
+});
+    /*
+    ! not invoked !
+    var oClass = Java.use('java.io.OutputStreamWriter');
+    oClass.write.overload('java.lang.String', 'int', 'int').implementation = function(s, i2, i3) {
+        console.log('[4]');
+        this.write(s, i2, i3);
+    };
+    oClass.write.overload('[C', 'int', 'int').implementation = function(c, i2, i3) {
+        console.log('[5]');
+        this.write(c, i2, i3);
+    };
+    oClass.write.overload('int').implementation = function(i) {
+        console.log('[6]');
+        this.write(i);
+    };
+    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function binary2hex2ascii(array, readBytesNum) {
+    var result = [];
+    // performance wise to read 100 bytes
+    readBytesNum = readBytesNum || 100;
+    for (var i = 0; i < readBytesNum; ++i) {
+    // TODO fix unicode for Hebrew and Math related symbols
+    // * (double) doesn't work, but + (plus) works
+        result.push(String.fromCharCode(
+            parseInt(
+                ('0' + (array[i] & 0xFF).toString(16) ).slice(-2), // binary2hex part
+                16
+            )
+        ));
+    }
+    // TODO extract facebookID from previous_winners packet, #OSINT ?
+    return result.join('');
+}
+
 Java.perform(function() {
 
     Java.use('java.io.InputStream').read.overload('[B').implementation = function(b) {
