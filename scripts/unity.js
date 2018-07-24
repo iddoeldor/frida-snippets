@@ -1,3 +1,51 @@
+function bytes2hex(array) {
+    var result = '';
+//    console.log('len = ' + array.length);
+    for (var i = 0; i < array.length; ++i) {
+        result += ('0' + (array[i] & 0xFF).toString(16)).slice(-2);
+    }
+    return result;
+}
+
+function hex2string(hex) {
+    var string = '';
+    for (var i = 0; i < hex.length; i += 2) {
+      string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return string;
+}
+
+Java.perform(function() {
+//    var Map = Java.use('java.util.Map');
+//    var UnityWebRequest = Java.use('com.unity3d.player.UnityWebRequest');
+//
+//    UnityWebRequest.downloadCallback.overload('java.nio.ByteBuffer', 'int').implementation = function(buf1, int2) {
+//        var retval = this.downloadCallback(buf1, int2);
+//        console.log('downloadCallback', JSON.stringify({
+//            buf1: buf1.toString(),
+//            int2: int2
+//        }, null, '  '));
+//        return retval;
+//    };
+
+    var bClass = Java.use("java.io.OutputStream");
+    bClass.write.overload('int').implementation = function(x) {
+        console.log("[1] " + x);
+        return this.write(x);
+    }
+    bClass.write.overload('[B').implementation = function(b) {
+        console.log("[2] " + hex2string( bytes2hex( b ) ) );
+        return this.write(b);
+    }
+    bClass.write.overload('[B','int','int').implementation = function(b,y,z) {
+        console.log("[2] " + hex2string( bytes2hex( b ) ) + " | " + y + " | " + z);
+        return this.write(b,y,z);
+    }
+
+});
+
+
+
 Java.perform(function() {
     var Map = Java.use('java.util.Map');
     var UnityWebRequest = Java.use('com.unity3d.player.UnityWebRequest');
