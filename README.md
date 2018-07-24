@@ -339,3 +339,4 @@ Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implemen
 * https://zhiwei.li/text/2016/02/01/%E7%BC%96%E8%AF%91frida/
 * https://kov4l3nko.github.io/blog/2018-05-27-sll-pinning-hook-sectrustevaluate/
 * https://www.codemetrix.net/hacking-android-apps-with-frida-1/
+* https://awakened1712.github.io/hacking/hacking-frida/
