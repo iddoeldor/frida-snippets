@@ -1,31 +1,36 @@
-function b2h2s(array, n) { // bytes 2 hex 2 string
-    var result = '';
-    for (var i = 0, l = n ? n: 100; i < l; ++i) {
-        result += ('0' + (array[i] & 0xFF).toString(16)).slice(-2);
+function binary2hex2ascii(array, readBytesNum) {
+    var result = [];
+    // performance wise to read 100 bytes
+    readBytesNum = readBytesNum || 100;
+    for (var i = 0; i < readBytesNum; ++i) {
+    // TODO fix unicode for Hebrew and Math related symbols
+    // * (double) doesn't work, but + (plus) works
+        result.push(String.fromCharCode(
+            parseInt(
+                ('0' + (array[i] & 0xFF).toString(16) ).slice(-2), // binary2hex part
+                16
+            )
+        ));
     }
-    // hex 2 string
-    // TODO improve, no need to iterate twice, read fromCharCode in first iteration
-    // TODO extract facebookID from previous_winners packet
-    var string = '';
-    for (var i = 0; i < result.length; i += 2) {
-      string += String.fromCharCode(parseInt(result.substr(i, 2), 16));
-    }
-    return string;
+    // TODO extract facebookID from previous_winners packet, #OSINT ?
+    return result.join('');
 }
 
 Java.perform(function() {
 
     Java.use('java.io.InputStream').read.overload('[B').implementation = function(b) {
         var retval = this.read(b);
-        var resp = b2h2s(b);
+        var resp = binary2hex2ascii(b);
         // conditions to not print garbage packets
-        if (resp.indexOf('isBot') == -1 && resp.indexOf(' Answer') == -1 && resp.indexOf('Pinged') == -1) {
+        if (
+            resp.indexOf('isBot') == -1
+            && resp.indexOf(' Answer') == -1
+            && resp.indexOf('Pinged') == -1
+        ) {
             console.log( resp );
         }
         if (resp.indexOf('Waiting To Show Question') != -1) {
-            console.log("******************************\n");
-            console.log( b2h2s( b , 1200) );
-            console.log("\n******************************");
+            console.log("\n\n\t{{ " + binary2hex2ascii( b , 1200) + " }}\n\n");
         }
         // TODO mimic answer packet (hook OutputStream), send to get back the answer
         return retval;
