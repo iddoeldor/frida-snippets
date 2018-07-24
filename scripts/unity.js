@@ -1,10 +1,10 @@
-// bytes 2 hex 2 string
-function b2h2s(array, n) {
+function b2h2s(array, n) { // bytes 2 hex 2 string
     var result = '';
     for (var i = 0, l = n ? n: 100; i < l; ++i) {
         result += ('0' + (array[i] & 0xFF).toString(16)).slice(-2);
     }
     // hex 2 string
+    // TODO improve, no need to iterate twice, read fromCharCode in first iteration
     // TODO extract facebookID from previous_winners packet
     var string = '';
     for (var i = 0; i < result.length; i += 2) {
@@ -32,6 +32,7 @@ Java.perform(function() {
     };
 
 });
+
 
 /*
 {"status":"Success","gameState":"Waiting To Show Question","questionIndex":0,"gameID":"5b575b2bd3bff
