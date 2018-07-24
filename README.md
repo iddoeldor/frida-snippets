@@ -1,5 +1,6 @@
 # Contents
  - [Enumerate loaded classes](#enumerate-loaded-classes) 
+ - [Java class available methods](#java-class-methods)
  - [Dump iOS class hierarchy](#dump-ios-class-hierarchy) 
  - [iOS instance members values](#ios-instance-members-values)
  - [iOS extract cookies](#ios-extract-cookies)
@@ -21,6 +22,11 @@
 And save to a file
 ```
 $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' -o pkg.classes
+```
+
+#### Java class methods
+```
+Object.getOwnPropertyNames(Java.use('com.company.CustomClass').__proto__).join('\n\t')
 ```
 
 #### Dump iOS class hierarchy
