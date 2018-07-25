@@ -25,13 +25,13 @@ $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"on
 ```
 Search for class
 ```
-	Java.enumerateLoadedClasses({
-		onMatch: function(aClass) {
-			if (aClass.match(pattern)) //  "ClassName" or "/classname/i"  match a regex with case insensitive flag
-				console.log(aClass);
-		},
-		onComplete: function() {}
-	});
+Java.enumerateLoadedClasses({
+	onMatch: function(aClass) {
+		if (aClass.match("/classname/i")) // match a regex with case insensitive flag
+			console.log(aClass);
+	},
+	onComplete: function() {}
+});
 ```
 
 #### Java class methods
