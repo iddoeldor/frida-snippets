@@ -1,4 +1,5 @@
 # Contents
+ - [Intercept and backtrace low level open](#intercept-and-backtrace-low-level-open)
  - [Enumerate loaded classes](#enumerate-loaded-classes) 
  - [Java class available methods](#java-class-methods)
  - [Dump iOS class hierarchy](#dump-ios-class-hierarchy) 
@@ -17,7 +18,30 @@
  - [File access](#file-access)
  - [Webview URLS](#webview-urls)
  - [TODO list](#todos)
- 
+
+#### Intercept and backtrace low level open
+```
+Interceptor.attach(Module.findExportByName("/system/lib/libc.so", "open"), {
+	onEnter: function(args) {
+		// debug only the intended calls
+this.flag = false;
+		var filename = Memory.readCString(ptr(args[0]));
+		if (filename.indexOf("epsi") != -1)
+			this.flag = true;
+		if (this.flag) {
+			console.log("file name [ " + Memory.readCString(ptr(args[0])) +
+			    " ]\nBacktrace:" +
+			    Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n\t")
+			);
+		}
+	},
+	onLeave: function(retval) {
+		if (this.flag)
+			console.warn("\nretval: " + retval);
+	}
+});
+```
+
 #### Enumerate loaded classes
 And save to a file
 ```
