@@ -133,6 +133,286 @@ function uniqBy(array, key) { // remove duplicates from array
     });
 }
 
+function trace(pattern)
+{
+	var type = (pattern.toString().indexOf("!") === -1) ? "java" : "module";
+
+	if (type === "module") {
+
+		// trace Module
+		var res = new ApiResolver("module");
+		var matches = res.enumerateMatchesSync(pattern);
+		var targets = uniqBy(matches, JSON.stringify);
+		targets.forEach(function(target) {
+			traceModule(target.address, target.name);
+		});
+
+	} else if (type === "java") {
+
+		// trace Java Class
+		var found = false;
+		Java.enumerateLoadedClasses({
+			onMatch: function(aClass) {
+				if (aClass.match(pattern)) {
+					found = true;
+					var className = aClass.match(/[L](.*);/)[1].replace(/\//g, ".");
+					traceClass(className);
+				}
+			},
+			onComplete: function() {}
+		});
+
+		// trace Java Method
+		if (!found) {
+			try {
+				traceMethod(pattern);
+			}
+			catch(err) { // catch non existing classes/methods
+				console.error(err);
+			}
+		}
+	}
+}
+
+function traceModule(impl, name)
+{
+	console.log("Tracing " + name);
+
+	Interceptor.attach(impl, {
+
+		onEnter: function(args) {
+
+			// debug only the intended calls
+			this.flag = false;
+			// var filename = Memory.readCString(ptr(args[0]));
+			// if (filename.indexOf("XYZ") === -1 && filename.indexOf("ZYX") === -1) // exclusion list
+			// if (filename.indexOf("my.interesting.file") !== -1) // inclusion list
+				this.flag = true;
+
+			if (this.flag) {
+				console.warn("\n*** entered " + name);
+
+				// print backtrace
+				console.log("\nBacktrace:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE)
+						.map(DebugSymbol.fromAddress).join("\n"));
+			}
+		},
+
+		onLeave: function(retval) {
+
+			if (this.flag) {
+				// print retval
+				console.log("\nretval: " + retval);
+				console.warn("\n*** exiting " + name);
+			}
+		}
+
+	});
+}
+
+// Main
+Java.perform(function() {
+    try {
+//        hookInputStream();
+//        hookOutputStream();
+//        hookConstructor();
+//        hookUploadCallback();
+// https://blogs.unity3d.com/2014/06/11/all-about-the-unity-networking-transport-layer/
+//        traceClass('com.unity3d.player.WWW');
+//        trace("exports:*!*send*"); // Tracing /system/lib/libnetutils.so!send_packet
+//        trace("exports:*!*packet*");
+        /*
+        Tracing /system/lib/libnetutils.so!send_packet
+        Tracing /system/lib/libnetutils.so!receive_packet
+        // but no logs
+        */
+//        Interceptor.attach(Module.findExportByName('/system/lib/libnetutils.so', 'send_packet'), {
+//            onEnter: function(args) {
+//                console.log('send_packet', args[0]);
+//            },
+//            onLeave: function(retval) {
+//            }
+//        });
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function binary2hex2ascii(array, readBytesNum) {
+    var result = [];
+    // performance wise to read 100 bytes
+    readBytesNum = readBytesNum || 100;
+    for (var i = 0; i < readBytesNum; ++i) {
+    // TODO fix unicode for Hebrew and Math related symbols
+    // * (double) doesn't work, but + (plus) works
+        result.push(String.fromCharCode(
+            parseInt(
+                ('0' + (array[i] & 0xFF).toString(16) ).slice(-2), // binary2hex part
+                16
+            )
+        ));
+    }
+    // TODO extract facebookID from previous_winners packet, #OSINT ?
+    return result.join('');
+}
+
+function hookInputStream() {
+    Java.use('java.io.InputStream').read.overload('[B').implementation = function(b) {
+        var retval = this.read(b);
+        var resp = binary2hex2ascii(b);
+        // conditions to not print garbage packets
+        if (
+            resp.indexOf('isBot') == -1
+            && resp.indexOf(' Answer') == -1
+            && resp.indexOf('Pinged') == -1
+        ) {
+            console.log( resp );
+        }
+        if (resp.indexOf('Waiting To Show Question') != -1) {
+            console.log("\n\n\t{{ " + binary2hex2ascii( b , 1200) + " }}\n\n");
+        }
+        // TODO mimic answer packet (hook OutputStream), send to get back the answer
+        return retval;
+    };
+}
+
+function hookOutputStream() {
+    var bClass = Java.use("java.io.OutputStream");
+    bClass.write.overload('int').implementation = function(x) {
+        console.log("[1] " + x);
+        return this.write(x);
+    }
+    bClass.write.overload('[B').implementation = function(b) {
+        console.log("[2] " + binary2hex2ascii(b) );
+        return this.write(b);
+    }
+    bClass.write.overload('[B','int','int').implementation = function(b,y,z) {
+        console.log("[3] " + binary2hex2ascii(b));
+        return this.write(b,y,z);
+    }
+}
+
+function hookConstructor() {
+    var Map = Java.use('java.util.Map');
+    Java.use('com.unity3d.player.UnityWebRequest').$init
+        .overload('long', 'java.lang.String', 'java.util.Map', 'java.lang.String', 'int').implementation = function(long1, str2, map3, str4, int5) {
+        console.log(this, JSON.stringify({
+            '#1': long1,
+            method: str2,
+            headers: Java.cast(map3, Map).toString(),
+            url: str4,
+            '#5': int5
+        }, null, 2));
+        this.$init(long1, str2, map3, str4, int5);
+    };
+}
+
+function hookUploadCallback() {
+    Java.use('com.unity3d.player.UnityWebRequest').uploadCallback.overload('java.nio.ByteBuffer').implementation = function(buf1) {
+        console.log('uploadCallback', buf1);
+        this.uploadCallback(buf1);
+    };
+}
+
+
+function traceClass(targetClass) {
+	var hook = Java.use(targetClass);
+	var methods = hook.class.getDeclaredMethods();
+	hook.$dispose;
+
+	var parsedMethods = [];
+	methods.forEach(function(method) {
+		parsedMethods.push(method.toString().replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1]);
+	});
+
+	var targets = uniqBy(parsedMethods, JSON.stringify);
+	targets.forEach(function(targetMethod) {
+		traceMethod(targetClass + "." + targetMethod);
+	});
+}
+
+function traceMethod(targetClassMethod) {
+	var delim = targetClassMethod.lastIndexOf(".");
+	if (delim === -1) return;
+
+	var targetClass = targetClassMethod.slice(0, delim)
+	var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
+	var hook = Java.use(targetClass);
+	var overloadCount = hook[targetMethod].overloads.length;
+	console.log("Tracing " + targetClassMethod + " [" + overloadCount + " overload(s)]");
+	for (var i = 0; i < overloadCount; i++) {
+		hook[targetMethod].overloads[i].implementation = function() {
+			console.warn("\n*** entered " + targetClassMethod);
+
+			// print backtrace
+			// Java.perform(function() {
+			//	var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+			//	console.log("\nBacktrace:\n" + bt);
+			// });
+
+			// print args
+			if (arguments.length) console.log();
+			for (var j = 0; j < arguments.length; j++) {
+				console.log("arg[" + j + "]: " + arguments[j]);
+			}
+
+			// print retval
+			var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
+			console.log("\nretval: " + retval);
+			console.warn("\n*** exiting " + targetClassMethod);
+			return retval;
+		}
+	}
+}
+
+function uniqBy(array, key) { // remove duplicates from array
+    var seen = {};
+    return array.filter(function(item) {
+        var k = key(item);
+        return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+    });
+}
+
 // Main
 Java.perform(function() {
     try {
