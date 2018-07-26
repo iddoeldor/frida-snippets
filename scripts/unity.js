@@ -1,3 +1,45 @@
+Java.perform(function() {
+
+    var awaitForCondition = function(callback) {
+        var int = setInterval(function() {
+            if (Module.findExportByName(null, "mono_get_root_domain")) {
+                clearInterval(int);
+                callback();
+                return;
+            }
+        }, 0);
+    }
+
+    function hookSet() {
+        Interceptor.attach(Module.findExportByName(null, "mono_assembly_load_from_full"), {
+            onEnter: function(args) {
+                var name = Memory.readUtf8String(ptr(args[1]));
+                console.log('[1]', name);
+                var parts = name.split('/');
+                if (parts.length < 2) {
+                    parts = name.split(',');
+                }
+                var dllName = parts[parts.length - 1];
+                this.dllName = dllName;
+            },
+            onLeave: function(retval) {
+                if (this.dllName == 'Assembly-CSharp.dll') {
+                    console.log('[2]', retval, this.dllName);
+                    console.log('[3]', Module.enumerateSymbolsSync(this.dllName));
+                }
+            }
+        });
+    }
+    awaitForCondition(hookSet);
+
+});
+
+
+
+
+
+
+
 function binary2hex2ascii(array, readBytesNum) {
     var result = [];
     // performance wise to read 100 bytes
