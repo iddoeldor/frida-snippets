@@ -1,3 +1,6 @@
+
+// apk/assets/bin/Data/Managed$ for i in *.dll; do echo "[*] $i"; rabin2 -zzz $i | grep -i certificate; done
+
 Java.perform(function() {
 
     var awaitForCondition = function(callback) {
