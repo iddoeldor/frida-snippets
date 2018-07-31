@@ -17,6 +17,7 @@
  - [Observe iOS class](#observe-ios-class)
  - [File access](#file-access)
  - [Webview URLS](#webview-urls)
+ - [Await for specific module to load](#await-for-condition)
  - [TODO list](#todos)
 
 #### Intercept and backtrace low level open
@@ -359,6 +360,51 @@ Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implemen
     send(s.toString());
     this.loadUrl.overload("java.lang.String").call(this, s);
 };
+```
+
+#### Await for condition
+Await until specific DLL will load in Unity app, can implement hot swap
+```
+var awaitForCondition = function(callback) {
+    var int = setInterval(function() {
+        if (Module.findExportByName(null, "mono_get_root_domain")) {
+            clearInterval(int);
+            callback();
+            return;
+        }
+    }, 0);
+}
+
+function hook() {
+    Interceptor.attach(Module.findExportByName(null, "mono_assembly_load_from_full"), {
+        onEnter: function(args) {
+            this._dll = Memory.readUtf8String(ptr(args[1]));
+            console.log('[*]', this._dll);
+        },
+        onLeave: function(retval) {
+            var DLL = "Assembly-CSharp.dll";
+            if (this._dll.indexOf(DLL) != -1) {
+                console.log(JSON.stringify({
+                    retval: retval,
+                    name: this._dll,
+                    symbols: Module.enumerateSymbolsSync(DLL),
+                    exports: Module.enumerateExportsSync(DLL),
+                    imports: Module.enumerateImportsSync(DLL),
+                    // initialized: Module.ensureInitialized(DLL),
+                    // moduleAddr: Process.getModuleByAddress(retval)
+                }, null, 2));
+
+            }
+        }
+    });
+}
+Java.perform(function() {
+    try {
+        awaitForCondition(hook);
+    } catch (e) {
+        console.error(e);
+    }
+});
 ```
 
 #### TODOs 
