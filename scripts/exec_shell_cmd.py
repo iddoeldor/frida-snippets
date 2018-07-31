@@ -63,7 +63,10 @@ class Shell(object):
     def _on_output(self, pid, fd, data):
         # if len(data) > 0:
             # print("⚡ output: pid={}, fd={}, data={}".format(pid, fd, repr(data)))
-        self.output.append(data)
+        # fd=0 (input) fd=1(stdout) fd=2(stderr)
+        # TODO handle fd=2
+        if fd != 2:
+            self.output.append(data)
 
     def _on_detached(self, pid, session, reason):
         click.secho("⚡ detached: pid={}, reason='{}'".format(pid, reason), fg='green', dim=True)
