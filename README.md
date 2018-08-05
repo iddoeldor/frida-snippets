@@ -18,6 +18,7 @@
  - [File access](#file-access)
  - [Webview URLS](#webview-urls)
  - [Await for specific module to load](#await-for-condition)
+ - [Android make Toast](#android-make-toast)
  - [TODO list](#todos)
 
 #### Intercept and backtrace low level open
@@ -404,6 +405,19 @@ Java.perform(function() {
     } catch (e) {
         console.error(e);
     }
+});
+```
+
+#### Android make Toast
+```
+Java.scheduleOnMainThread(function() {
+	Java.use("android.widget.Toast")
+	    .makeText(
+            Java.use("android.app.ActivityThread").currentApplication().getApplicationContext(),
+            "Text to Toast here",
+            0 // https://developer.android.com/reference/android/widget/Toast#LENGTH_LONG
+        )
+        .show();
 });
 ```
 
