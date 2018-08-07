@@ -1,3 +1,8 @@
+// https://github.com/freehuntx/frida-mono-api/blob/master/src/mono-api-helper.js#L21
+// https://github.com/freehuntx/frida-mono-api/blob/master/src/mono-api-helper.js#L53
+// https://github.com/freehuntx/frida-mono-api/blob/master/src/mono-api-helper.js#L34
+// https://github.com/freehuntx/frida-mono-api/blob/master/src/mono-api-helper.js#L18
+
 // await until Mono is loaded
 var awaitForCondition = function(callback) {
     var int = setInterval(function() {
