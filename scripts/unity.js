@@ -1,3 +1,80 @@
+/*
+1. Get image by name [call mono_image_loaded]
+2. Get class by name [call mono_class_from_name](#http://docs.go-mono.com/?link=api%3amono_class_from_name)
+3. Get method in class by name [call mono_class_get_method_from_name](#http://docs.go-mono.com/index.aspx?link=xhtml%3Adeploy%2Fmono-api-class.html)
+4. Compile method to get address [call mono_compile_method](#http://docs.go-mono.com/index.aspx?link=xhtml%3Adeploy%2Fmono-api-unsorted.html)
+5. Intercept compiled method
+*/
+function Main() {
+    var awaitForCondition = function(callback) {
+        var int = setInterval(function() {
+            if (Module.findExportByName(null, "mono_get_root_domain")) {
+                clearInterval(int);
+                callback();
+                return;
+            }
+        }, 0);
+    }
+
+    function hook() {
+        Interceptor.attach(Module.findExportByName(null, "mono_assembly_load_from_full"), {
+            onEnter: function(args) {
+		this._image = args[0];
+		this._fname = Memory.readUtf8String(args[1]);
+		this._status = args[2];
+		this._refonly = args[3];
+                console.log('[E]', args[0], Memory.readUtf8String(args[1]));
+            },
+            onLeave: function(retval) {
+                if (this._fname.indexOf("Assembly-CSharp.dll") != -1) {
+			console.log("mono_class_from_name", Module.findExportByName(null, "mono_class_from_name") );	
+			Interceptor.attach(Module.findExportByName(null, "mono_class_from_name"), {
+				onEnter: function(args) {
+					var name_space = Memory.readUtf8String(args[1]).toString();
+					if (
+						!name_space.startsWith("System") && 
+						!name_space.startsWith("Unity") && 
+						!name_space.startsWith("Facebook") && 
+						!name_space.startsWith("Google")
+					) {
+						console.log('[E2]', args[0], name_space, Memory.readUtf8String(args[2]) );
+						this._namespace = name_space;
+					}
+					else this._namespace = null;
+				},
+				onLeave: function(retval) {
+					if (this._namespace) console.log('[L2]', this._namespace, retval);
+				}
+			});	
+		}
+            }
+        });
+
+    }
+    awaitForCondition(hook);
+}
+Java.perform(Main);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // apk/assets/bin/Data/Managed$ for i in *.dll; do echo "[*] $i"; rabin2 -zzz $i | grep -i certificate; done
 
