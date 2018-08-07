@@ -1,3 +1,161 @@
+// await until Mono is loaded
+var awaitForCondition = function(callback) {
+    var int = setInterval(function() {
+        if (Module.findExportByName(null, "mono_get_root_domain")) {
+            clearInterval(int);
+            callback();
+            return;
+        }
+    }, 0);
+}
+
+function cb(funcName) {
+    return {
+        onEnter: function(args) {
+            this.extra = {
+                funcName: funcName,
+                arg0: args[0]
+            };
+        },
+        onLeave: function(retval) {
+            this.extra.retval = retval;
+            console.log(JSON.stringify(this.extra, null, 2));
+            console.log( hexdump(retval, { offset: 0, length: 0x60, header: true, ansi: true }) );
+        }
+    }
+}
+
+function hookMethod(dll, klass, method, extra) {
+    var monoImage = mono_image_loaded(dll);
+    // monoImage will be the same as this.extra.image
+    var monoClass = mono_class_from_name(monoImage, "", klass);
+    var monoMethod = mono_class_get_method_from_name(monoClass, method, -1);
+    // = mono_class_get_method_from_name(monoClass, "lastRecivedGameId", -1); // mono_class_get_field
+    var compiledMethod = mono_compile_method(monoMethod);
+
+    Interceptor.attach(monoMethod, cb("monoMethod"));
+    Interceptor.attach(compiledMethod, cb("compiledMethod"));
+
+    Object.assign(extra, {
+        MonoImage: monoImage,
+        MonoClass: monoClass,
+        monoMethod: monoMethod,
+        compiledMethod: compiledMethod
+    });
+    console.log(JSON.stringify(extra, null, 2));
+}
+
+function hook() {
+    Interceptor.attach(Module.findExportByName(null, "mono_assembly_load_from_full"), {
+        onEnter: function(args) {
+            this.extra = {
+                image: args[0],
+                fname: Memory.readUtf8String(args[1]),
+                status: args[2],
+                refonly: args[3],
+            };
+        },
+        onLeave: function(retval) {
+            if (this.extra.fname.endsWith("Assembly-CSharp.dll")) {
+                this.extra.retval = retval;
+                hookMethod(this.extra.fname, "NetworkDriver", "AskForQuestion", this.extra);
+            }
+        }
+    });
+}
+
+/**
+* MonoImage* mono_image_loaded (const char *name)
+* http://docs.go-mono.com/index.aspx?link=xhtml%3Adeploy%2Fmono-api-image.html
+*/
+var mono_image_loaded = function(name) {
+    return new NativeFunction(
+        Module.findExportByName(null, "mono_image_loaded"), // pointer to method
+        'pointer', // return type, MonoImage*
+        ['pointer'] // arguments, char *name
+    )(
+        Memory.allocUtf8String(name) // allocating & passing parameter's address
+    )
+}
+
+/**
+* MonoClass* mono_class_from_name (MonoImage *image, const char* name_space, const char *name)
+* http://docs.go-mono.com/?link=api%3amono_class_from_name
+*/
+var mono_class_from_name = function(image, name_space, name) {
+    return new NativeFunction(
+        Module.findExportByName(null, "mono_class_from_name"),
+        'pointer',
+        ['pointer', 'pointer', 'pointer']
+    )( image, Memory.allocUtf8String(name_space), Memory.allocUtf8String(name) )
+}
+
+/**
+* MonoMethod* mono_class_get_method_from_name (MonoClass *klass, const char *name, int param_count)
+*   klass	where to look for the method
+*   name	name of the method
+*   param_count	number of parameters. -1 for any number.
+* http://docs.go-mono.com/index.aspx?link=xhtml%3Adeploy%2Fmono-api-class.html
+*/
+var mono_class_get_method_from_name = function(klass, name, param_count) {
+    return new NativeFunction(
+        Module.findExportByName(null, "mono_class_get_method_from_name"),
+        'pointer',
+        ['pointer', 'pointer', 'int']
+    )( klass, Memory.allocUtf8String(name), param_count )
+}
+
+/**
+* gpointer mono_compile_method (MonoMethod *method)
+* http://docs.go-mono.com/index.aspx?link=xhtml%3Adeploy%2Fmono-api-unsorted.html
+*/
+var mono_compile_method = function(method) {
+    return new NativeFunction(
+        Module.findExportByName(null, "mono_compile_method"),
+        'pointer',
+        ['pointer']
+    )( method )
+}
+
+//////////////// Main ////////////////
+Java.perform(awaitForCondition(hook));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 1. Get image by name [call mono_image_loaded]
 2. Get class by name [call mono_class_from_name](#http://docs.go-mono.com/?link=api%3amono_class_from_name)
