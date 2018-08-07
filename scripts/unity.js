@@ -26,9 +26,9 @@ function cb(funcName) {
 }
 
 function hookMethod(dll, klass, method, extra) {
-    var monoImage = mono_image_loaded(dll);
+//    var monoImage = mono_image_loaded(dll);
     // monoImage will be the same as this.extra.image
-    var monoClass = mono_class_from_name(monoImage, "", klass);
+    var monoClass = mono_class_from_name(extra.image, "", klass);
     var monoMethod = mono_class_get_method_from_name(monoClass, method, -1);
     // = mono_class_get_method_from_name(monoClass, "lastRecivedGameId", -1); // mono_class_get_field
     var compiledMethod = mono_compile_method(monoMethod);
@@ -37,7 +37,7 @@ function hookMethod(dll, klass, method, extra) {
     Interceptor.attach(compiledMethod, cb("compiledMethod"));
 
     Object.assign(extra, {
-        MonoImage: monoImage,
+        //MonoImage: monoImage,
         MonoClass: monoClass,
         monoMethod: monoMethod,
         compiledMethod: compiledMethod
@@ -119,7 +119,6 @@ var mono_compile_method = function(method) {
 
 //////////////// Main ////////////////
 Java.perform(awaitForCondition(hook));
-
 
 
 
