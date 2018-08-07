@@ -25,11 +25,11 @@ function cb(funcName) {
     }
 }
 
-function hookMethod(dll, klass, method, extra) {
+function hookMethod(dll, name_space, klass, method, num_params, extra) {
 //    var monoImage = mono_image_loaded(dll);
     // monoImage will be the same as this.extra.image
-    var monoClass = mono_class_from_name(extra.image, "", klass);
-    var monoMethod = mono_class_get_method_from_name(monoClass, method, -1);
+    var monoClass = mono_class_from_name(extra.image, name_space, klass);
+    var monoMethod = mono_class_get_method_from_name(monoClass, method, num_params);
     // = mono_class_get_method_from_name(monoClass, "lastRecivedGameId", -1); // mono_class_get_field
     var compiledMethod = mono_compile_method(monoMethod);
 
@@ -58,10 +58,25 @@ function hook() {
         onLeave: function(retval) {
             if (this.extra.fname.endsWith("Assembly-CSharp.dll")) {
                 this.extra.retval = retval;
-                hookMethod(this.extra.fname, "NetworkDriver", "AskForQuestion", this.extra);
+                hookMethod(this.extra.fname, "", "NetworkDriver", "AskForQuestion", -1, this.extra);
             }
         }
     });
+    /*
+    Interceptor.attach(Module.findExportByName(null, "mono_class_from_name"), {
+        onEnter: function(args) {
+            this.extra = {
+                name_space: Memory.readUtf8String(args[1]),
+                name: Memory.readUtf8String(args[2])
+            };
+        },
+        onLeave: function(retval) {
+            if (this.extra.name_space.indexOf("UnityEngine.UI") != -1) {
+                console.log(JSON.stringify(this.extra, null, 2));
+            }
+        }
+    });
+    */
 }
 
 /**
@@ -119,7 +134,6 @@ var mono_compile_method = function(method) {
 
 //////////////// Main ////////////////
 Java.perform(awaitForCondition(hook));
-
 
 
 
