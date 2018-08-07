@@ -23,24 +23,22 @@
  - [TODO list](#todos)
 
 #### Intercept and backtrace low level open
-```
+```javascript
 Interceptor.attach(Module.findExportByName("/system/lib/libc.so", "open"), {
 	onEnter: function(args) {
 		// debug only the intended calls
-this.flag = false;
+		this.flag = false;
 		var filename = Memory.readCString(ptr(args[0]));
 		if (filename.indexOf("epsi") != -1)
 			this.flag = true;
-		if (this.flag) {
+		if (this.flag)
 			console.log("file name [ " + Memory.readCString(ptr(args[0])) +
 			    " ]\nBacktrace:" +
 			    Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n\t")
 			);
-		}
 	},
 	onLeave: function(retval) {
-		if (this.flag)
-			console.warn("\nretval: " + retval);
+		if (this.flag) console.warn("\nretval: " + retval);
 	}
 });
 ```
@@ -51,7 +49,7 @@ And save to a file
 $ frida -U com.pkg -qe 'Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});' -o pkg.classes
 ```
 Search for class
-```
+```javascript
 Java.enumerateLoadedClasses({
 	onMatch: function(aClass) {
 		if (aClass.match("/classname/i")) // match a regex with case insensitive flag
@@ -62,18 +60,15 @@ Java.enumerateLoadedClasses({
 ```
 
 #### Java class methods
-```
+```javascript
 Object.getOwnPropertyNames(Java.use('com.company.CustomClass').__proto__).join('\n\t')
 ```
 
 #### Dump iOS class hierarchy
-```
-/*
 Object.keys(ObjC.classes) will list all available Objective C classes,
 but actually this will return all classes loaded in current process, including system frameworks.
-If we want something like weak_classdump, to list classes from executable it self only, Objective C runtime already provides such function objc_copyClassNamesForImage
-https://developer.apple.com/documentation/objectivec/1418485-objc_copyclassnamesforimage?language=objc
-*/
+If we want something like weak_classdump, to list classes from executable it self only, Objective C runtime already provides such function [objc_copyClassNamesForImage](#https://developer.apple.com/documentation/objectivec/1418485-objc_copyclassnamesforimage?language=objc)
+```javascript
 var objc_copyClassNamesForImage = new NativeFunction(
     Module.findExportByName(null, 'objc_copyClassNamesForImage'),
     'pointer',
@@ -116,7 +111,7 @@ send(tree);
 
 #### iOS instance members values
 Print map of members (with values) for each class instance
-```
+```javascript
 ObjC.choose(ObjC.classes[clazz], {
   onMatch: function (obj) {
     console.log('onMatch: ', obj);
@@ -131,7 +126,7 @@ ObjC.choose(ObjC.classes[clazz], {
 ```
 
 #### iOS extract cookies
-```
+```javascript
  var cookieJar = [];
  var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage().cookies();
  for (var i = 0, l = cookies.count(); i < l; i++) {
@@ -143,11 +138,11 @@ ObjC.choose(ObjC.classes[clazz], {
 
 #### List modules
 ```
-  $ frida -Uq com.android. -e "Process.enumerateModules({onMatch: function(m){console.log('-' + m.name)},onComplete:function(){}})"
+$ frida -Uq com.android. -e "Process.enumerateModules({onMatch: function(m){console.log('-' + m.name)},onComplete:function(){}})"
   ....
   -libsqlite.so
 ```
-```
+```javascript
 Process.enumerateModulesSync()
     .filter(function(m){ return m['path'].toLowerCase().indexOf('app') !=-1 ; })
     .forEach(function(m) {
@@ -187,7 +182,7 @@ Process.enumerateModulesSync()
    24878 ms     | sqlite3_free()  
  ```        
 #### SQLite hook
-```
+```javascript
 Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2'), {
       onEnter: function(args) {
           console.log('DB: ' + Memory.readUtf16String(args[0]) + '\tSQL: ' + Memory.readUtf16String(args[1]));
@@ -197,7 +192,7 @@ Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2
 
 #### Hook refelaction: 
 `java.lang.reflect.Method#invoke(Object obj, Object... args, boolean bool)`
-```
+```javascript
   Java.use('java.lang.reflect.Method').invoke.overload('java.lang.Object', '[Ljava.lang.Object;', 'boolean').implementation = function(a,b,c) {
       console.log('hooked!', a, b, c);
       return this.invoke(a,b,c);
@@ -205,7 +200,7 @@ Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2
 ```
 
 #### Hook constructor
-```
+```javascript
 Java.use('java.lang.StringBuilder').$init.overload('java.lang.String').implementation = function(stringArgument) {
       console.log("c'tor");
       return this(stringArgument);
@@ -213,7 +208,7 @@ Java.use('java.lang.StringBuilder').$init.overload('java.lang.String').implement
 ```
 #### Hook JNI by address
 Hook native method by module name and method address and print arguments
-```
+```javascript
 var moduleName = "libfoo.so"; 
 var nativeFuncAddr = 0x1234; // $ nm --demangle --dynamic libfoo.so | grep "Class::method("
 
@@ -242,7 +237,7 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
 ```
 #### Print runtime strings 
 Print created StringBuilder & StringBuffer & Stacktrace
-```
+```javascript
 Java.perform(function() {
   ['java.lang.StringBuilder', 'java.lang.StringBuffer'].forEach(function(clazz, i) {
     console.log('[?] ' + i + ' = ' + clazz);
@@ -263,7 +258,7 @@ Java.perform(function() {
 ```
 #### Find iOS application UUID 
 Get UUID for specific path when attached to an app by reading plist file under each app container
-```
+```javascript
 var PLACEHOLDER = '{UUID}';
 function extractUUIDfromPath(path) {
     var bundleIdentifier = String(ObjC.classes.NSBundle.mainBundle().objectForInfoDictionaryKey_('CFBundleIdentifier'));
@@ -290,7 +285,7 @@ console.log( extractUUIDfromPath('/var/mobile/Containers/Data/Application/' + PL
 ```
 
 #### Observe iOS class
-```
+```javascript
 function observeClass(name) {
     var k = ObjC.classes[name];
     k.$ownMethods.forEach(function(m) {
@@ -348,7 +343,7 @@ RET: 0xabcdef
 
 #### File Access
 iOS file access 
-```
+```javascript
 Interceptor.attach(ObjC.classes.NSFileManager['- fileExistsAtPath:'].implementation, {
     onEnter: function (args) {
         console.log('open' , ObjC.Object(args[2]).toString());
@@ -357,7 +352,7 @@ Interceptor.attach(ObjC.classes.NSFileManager['- fileExistsAtPath:'].implementat
 ```
 
 #### Webview URLS
-```
+```javascript
 Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implementation = function (s) {
     send(s.toString());
     this.loadUrl.overload("java.lang.String").call(this, s);
@@ -366,7 +361,7 @@ Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implemen
 
 #### Await for condition
 Await until specific DLL will load in Unity app, can implement hot swap
-```
+```javascript
 var awaitForCondition = function(callback) {
     var int = setInterval(function() {
         if (Module.findExportByName(null, "mono_get_root_domain")) {
@@ -410,20 +405,20 @@ Java.perform(function() {
 ```
 
 #### Android make Toast
-```
+```javascript
 Java.scheduleOnMainThread(function() {
 	Java.use("android.widget.Toast")
 	    .makeText(
-            Java.use("android.app.ActivityThread").currentApplication().getApplicationContext(),
-            "Text to Toast here",
-            0 // https://developer.android.com/reference/android/widget/Toast#LENGTH_LONG
-        )
+            	Java.use("android.app.ActivityThread").currentApplication().getApplicationContext(),
+            	"Text to Toast here",
+            	0 // https://developer.android.com/reference/android/widget/Toast#LENGTH_LONG
+        	)
         .show();
 });
 ```
 
 #### Hook java io InputStream
-```
+```javascript
 function binaryToHexToAscii(array, readLimit) {
     var result = [];
     // read 100 bytes #performance
