@@ -1,3 +1,22 @@
+/*
+. Button to install Frida on (rooted) Android device and start via ADB
+. Select app to hook
+. spawn app
+. if it not uses mono:
+        alert: "we hook Unity3d/Mono/Xamarin, this app seems to not use it..
+                Xamarin is a Microsoft-owned software company founded in May 2011 by the engineers that created Mono,
+                Mono for Android and MonoTouch, which are cross-platform implementations of the Common Language
+                Infrastructure (CLI) and Common Language Specifications (often called Microsoft .NET).
+else:
+	. hook dlopen, send Assembly-CSharp.dll to python side & save
+	. extract methods descriptions (name, arguments, return value, full signature) (w/ frida or static tool?)
+	. let user select one or many methods to hook
+		. for each methods selected, open select box to select which arguments to print or save into CSV
+	. add exit button to unload frida and de-attach
+
+* https://kivy.org	
+*/
+
 // https://github.com/freehuntx/frida-mono-api/blob/master/src/mono-api-helper.js#L21
 // https://github.com/freehuntx/frida-mono-api/blob/master/src/mono-api-helper.js#L53
 // https://github.com/freehuntx/frida-mono-api/blob/master/src/mono-api-helper.js#L34
