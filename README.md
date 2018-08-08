@@ -444,7 +444,7 @@ function hookInputStream() {
         if ( ! reExcludeList.test(resp) ) {
             console.log(resp);
         }
-        var reIncludeList = new RegExp(['AAA', 'BBB', 'CCC].join('|')); 
+        var reIncludeList = new RegExp(['AAA', 'BBB', 'CCC'].join('|')); 
         if ( reIncludeList.test(resp) ) {
             send( binaryToHexToAscii(b, 1200) );
         }
@@ -455,6 +455,15 @@ function hookInputStream() {
 // Main
 Java.perform(hookInputStream);
 ```
+
+
+
+
+
+
+
+
+
 
 #### TODOs 
 - Add GIFs & docs
