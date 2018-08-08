@@ -1,4 +1,16 @@
 /*
+TODO test if no need to compile again the method
+
+mono_object_get_virtual_method (obj, method);
+
+we need to free the result from mono_string_to_utf8 ()
+mono_free (p)
+
+
+MonoObject
+https://github.com/mono/mono/blob/master/samples/embed/test-invoke.c#L284
+*/
+/*
 . Button to install Frida on (rooted) Android device and start via ADB
 . Select app to hook
 . spawn app
