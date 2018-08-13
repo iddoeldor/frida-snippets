@@ -29,16 +29,15 @@ Interceptor.attach(Module.findExportByName("/system/lib/libc.so", "open"), {
 		// debug only the intended calls
 		this.flag = false;
 		var filename = Memory.readCString(ptr(args[0]));
-		if (filename.indexOf("epsi") != -1)
+		if (filename.indexOf("something") != -1) {
 			this.flag = true;
-		if (this.flag)
-			console.log("file name [ " + Memory.readCString(ptr(args[0])) +
-			    " ]\nBacktrace:" +
-			    Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n\t")
-			);
+			var backtrace = Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n\t");
+			console.log("file name [ " + Memory.readCString(ptr(args[0])) + " ]\nBacktrace:" + backtrace);
+		}
 	},
 	onLeave: function(retval) {
-		if (this.flag) console.warn("\nretval: " + retval);
+		if (this.flag) // passed from onEnter
+			console.warn("\nretval: " + retval);
 	}
 });
 ```
