@@ -21,6 +21,7 @@
  - [Android make Toast](#android-make-toast)
  - [Hook java io InputStream](#hook-java-io-inputstream)
  - [iOS alert box](#ios-alert-box)
+ - [Get IMEI](#get-imei)
  - [TODO list](#todos)
 
 #### Intercept and backtrace low level open
@@ -472,7 +473,13 @@ ObjC.schedule(ObjC.mainQueue, function () {
 })
 ```
 
-
+#### Get IMEI
+```
+function getIMEI(){
+	console.log(Java.use("android.telephony.TelephonyManager").$new().getDeviceId());
+}
+Java.perform(getIMEI)
+```
 
 
 
