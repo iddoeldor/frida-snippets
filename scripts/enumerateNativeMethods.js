@@ -11,8 +11,7 @@ function revealNativeMethods() {
         switch (symbol.name) {
             case "_ZN3art3JNI21RegisterNativeMethodsEP7_JNIEnvP7_jclassPK15JNINativeMethodib":
                 /*
-                    _ZN3art3JNI21RegisterNativeMethodsEP7_JNIEnvP7_jclassPK15JNINativeMethodib
-                    https://demangler.com/
+                    $ c++filt "_ZN3art3JNI21RegisterNativeMethodsEP7_JNIEnvP7_jclassPK15JNINativeMethodib"
                     art::JNI::RegisterNativeMethods(_JNIEnv*, _jclass*, JNINativeMethod const*, int, bool)
                 */
                 var RegisterNativeMethodsPtr = symbol.address;
