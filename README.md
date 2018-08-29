@@ -204,7 +204,7 @@ Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2
 ```javascript
 Java.use('java.lang.StringBuilder').$init.overload('java.lang.String').implementation = function(stringArgument) {
       console.log("c'tor");
-      return this(stringArgument);
+      return this.$init(stringArgument);
 };
 ```
 #### Hook JNI by address
