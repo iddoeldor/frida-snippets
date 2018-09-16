@@ -459,7 +459,7 @@ Java.perform(hookInputStream);
 ```
 
 #### iOS alert box
-```
+```javascript
 var UIAlertController = ObjC.classes.UIAlertController;
 var UIAlertAction = ObjC.classes.UIAlertAction;
 var UIApplication = ObjC.classes.UIApplication;
@@ -475,14 +475,15 @@ ObjC.schedule(ObjC.mainQueue, function () {
 ```
 
 #### Get IMEI
-```
+```javascript
 function getIMEI(){
 	console.log(Java.use("android.telephony.TelephonyManager").$new().getDeviceId());
 }
 Java.perform(getIMEI)
 ```
+
 #### Turn Wifi OFF
-```
+```javascript
 var WifiManager = Java.use("android.net.wifi.WifiManager");
 Java.use("android.app.Activity").onCreate.overload('android.os.Bundle').implementation = function() {
     try {
