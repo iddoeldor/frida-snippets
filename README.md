@@ -22,6 +22,7 @@
  - [Hook java io InputStream](#hook-java-io-inputstream)
  - [iOS alert box](#ios-alert-box)
  - [Get IMEI](#get-imei)
+ - [Turn WiFi off (Android)](#turn-wifi-off)
  - [TODO list](#todos)
 
 #### Intercept and backtrace low level open
@@ -480,7 +481,18 @@ function getIMEI(){
 }
 Java.perform(getIMEI)
 ```
-
+#### Turn Wifi OFF
+```
+var WifiManager = Java.use("android.net.wifi.WifiManager");
+Java.use("android.app.Activity").onCreate.overload('android.os.Bundle').implementation = function() {
+    try {
+        var wManager = Java.cast(this.getSystemService("wifi"), WifiManager);
+        console.log('isWifiEnabled', wManager.isWifiEnabled());
+        wManager.setWifiEnabled(false);
+    } catch (e) { console.error(e) }
+    return this.$init();
+}
+```
 
 
 
