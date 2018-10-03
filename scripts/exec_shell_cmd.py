@@ -8,7 +8,7 @@ def ls(folder):
         print(chunk.strip().decode())
 """
 import frida
-from frida.application import Reactor
+from frida_tools.application import Reactor
 import threading
 import click
 
@@ -61,10 +61,8 @@ class Shell(object):
         click.secho("⚡ child_removed: {}".format(child), fg='green', dim=True)
 
     def _on_output(self, pid, fd, data):
-        # if len(data) > 0:
-            # print("⚡ output: pid={}, fd={}, data={}".format(pid, fd, repr(data)))
+        # print("⚡ output: pid={}, fd={}, data={}".format(pid, fd, repr(data)))
         # fd=0 (input) fd=1(stdout) fd=2(stderr)
-        # TODO handle fd=2
         if fd != 2:
             self.output.append(data)
 
