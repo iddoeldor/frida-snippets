@@ -500,14 +500,12 @@ Java.use("android.app.Activity").onCreate.overload('android.os.Bundle').implemen
 
 
 #### TODOs 
-- (Java) Get field with which has name as a method ? underscore. [source](https://github.com/frida/frida-java/blob/master/lib/class-factory.js)
+- (Java) Get field with which has name as a method ? underscore. [source](https://github.com/frida/frida-java/blob/master/lib/class-factory.js) [PR](https://github.com/frida/frida-java/pull/21)
 ```js
-      const fields = invokeObjectMethodNoArgs(env.handle, classHandle, env.javaLangClass().getDeclaredFields);
-      ...
-              let fieldJsName = env.stringFromJni(fieldName);
-              while (jsMethods.hasOwnProperty(fieldJsName)) {
-                fieldJsName = '_' + fieldJsName;
-              }
+	let fieldJsName = env.stringFromJni(fieldName);
+	while (jsMethods.hasOwnProperty(fieldJsName)) {
+		fieldJsName = '_' + fieldJsName;
+	}
 ```
 
 - Add GIFs & docs
