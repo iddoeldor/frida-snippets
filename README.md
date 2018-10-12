@@ -500,6 +500,16 @@ Java.use("android.app.Activity").onCreate.overload('android.os.Bundle').implemen
 
 
 #### TODOs 
+- (Java) Get field with which has name as a method ? underscore. [source](https://github.com/frida/frida-java/blob/master/lib/class-factory.js)
+```js
+      const fields = invokeObjectMethodNoArgs(env.handle, classHandle, env.javaLangClass().getDeclaredFields);
+      ...
+              let fieldJsName = env.stringFromJni(fieldName);
+              while (jsMethods.hasOwnProperty(fieldJsName)) {
+                fieldJsName = '_' + fieldJsName;
+              }
+```
+
 - Add GIFs & docs
 - Add links to /scripts
 - Extend universal SSL unpinning for [ios](https://codeshare.frida.re/@dki/ios10-ssl-bypass/) [andoid 1](https://github.com/Fuzion24/JustTrustMe/blob/master/app/src/main/java/just/trust/me/Main.java) [android 2](https://codeshare.frida.re/@pcipolloni/universal-android-ssl-pinning-bypass-with-frida/)
