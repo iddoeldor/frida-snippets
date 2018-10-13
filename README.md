@@ -421,7 +421,7 @@ if __name__ == '__main__':
 
 <details>
 <summary>Symbol Type Table</summary>
-```
+<pre>
     "A" The symbol's value is absolute, and will not be changed by further linking.
     "B" The symbol is in the uninitialized data section (known as BSS).
     "C" The symbol is common.  Common symbols are uninitialized data.
@@ -452,7 +452,7 @@ if __name__ == '__main__':
         In this case, the next values printed are the stabs other field, the stabs desc field, and the stab type.  
         Stabs symbols are used to hold debugging information.
     "?" The symbol type is unknown, or object file format specific.
-```
+</pre>
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
