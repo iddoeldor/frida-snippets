@@ -328,6 +328,7 @@ Java.perform(hookInputStream);
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 
@@ -387,12 +388,13 @@ Java.perform(awaitForCondition(hook));
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 
 #### Webview URLS
 
-Log whnever WebView switch URL.
+Log whenever WebView switch URL.
 
 ```js
 Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implementation = function (s) {
@@ -405,6 +407,7 @@ Java.use("android.webkit.WebView").loadUrl.overload("java.lang.String").implemen
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 #### Print runtime strings 
@@ -435,6 +438,7 @@ Java.perform(function() {
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 #### Hook JNI by address
@@ -473,6 +477,7 @@ Interceptor.attach(Module.findExportByName(null, "dlopen"), {
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 #### Hook constructor
@@ -487,6 +492,7 @@ Java.use('java.lang.StringBuilder').$init.overload('java.lang.String').implement
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 #### Hook refelaction
@@ -504,6 +510,7 @@ TODO
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 #### iOS alert box
@@ -527,6 +534,7 @@ ObjC.schedule(ObjC.mainQueue, function () {
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 
@@ -546,6 +554,7 @@ Interceptor.attach(ObjC.classes.NSFileManager['- fileExistsAtPath:'].implementat
 <summary>Output example</summary>
 TODO
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 #### Observe class
@@ -609,6 +618,7 @@ RET: 0xabcdef
 ```
 
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 
@@ -646,6 +656,7 @@ console.log( extractUUIDfromPath('/var/mobile/Containers/Data/Application/' + PL
 <summary>Output example</summary>
 TODO	
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 
@@ -665,6 +676,7 @@ TODO
 <summary>Output example</summary>
 TODO	
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 
@@ -690,6 +702,7 @@ ObjC.choose(ObjC.classes[clazz], {
 <summary>Output example</summary>
 TODO	
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 #### Class hierarchy
@@ -744,6 +757,7 @@ send(tree);
 <summary>Output example</summary>
 TODO	
 </details>
+
 <br>[⬆ Back to top](#table-of-contents)
 
 
