@@ -7,6 +7,8 @@
 * [`Execute shell command`](#execute-shell-command)
 * [`List modules`](#list-modules)
 * [`Log SQLite query`](#log-sqlite-query)
+* [`Reveal manually registered native symbols`](#reveal-native-methods)
+* [`Log method arguments`](#log-method-arguments)
 
 </details>
 
@@ -22,9 +24,11 @@
 * [`Await for specific module to load`](#await-for-condition)
 * [`Webview URLS`](#webview-urls)
 * [`Print all runtime strings & stacktrace`](#print-runtime-strings)
+* [`String comparison`](#string-comparison)
 * [`Hook JNI by address`](#hook-jni-by-address)
 * [`Hook constructor`](#hook-constructor)
 * [`Hook Java refelaction`](#hook-refelaction)
+* [`Trace class`](#trace-class)
 
 </details>
 
@@ -196,6 +200,259 @@ Interceptor.attach(Module.findExportByName('libsqlite.so', 'sqlite3_prepare16_v2
 <details>
 <summary>Output example</summary>
 TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+#### Reveal native methods
+
+`registerNativeMethods` can be used as anti reversing technique to the native .so libraries, e.g. hiding the symbols as much as possible, obfuscating the exported symbols and eventually adding some protection over the JNI bridge.
+[source](https://stackoverflow.com/questions/51811348/find-manually-registered-obfuscated-native-function-address)
+
+```js
+var fIntercepted = false;
+
+function revealNativeMethods() {
+    if (fIntercepted === true) {
+        return;
+    }
+    var jclassAddress2NameMap = {};
+    var androidRunTimeSharedLibrary = "libart.so"; // may change between devices
+    Module.enumerateSymbolsSync(androidRunTimeSharedLibrary).forEach(function(symbol){
+        switch (symbol.name) {
+            case "_ZN3art3JNI21RegisterNativeMethodsEP7_JNIEnvP7_jclassPK15JNINativeMethodib":
+                /*
+                    $ c++filt "_ZN3art3JNI21RegisterNativeMethodsEP7_JNIEnvP7_jclassPK15JNINativeMethodib"
+                    art::JNI::RegisterNativeMethods(_JNIEnv*, _jclass*, JNINativeMethod const*, int, bool)
+                */
+                var RegisterNativeMethodsPtr = symbol.address;
+                console.log("RegisterNativeMethods is at " + RegisterNativeMethodsPtr);
+                Interceptor.attach(RegisterNativeMethodsPtr, {
+                    onEnter: function(args) {
+                        var methodsPtr = ptr(args[2]);
+                        var methodCount = parseInt(args[3]);
+                        for (var i = 0; i < methodCount; i++) {
+                            var pSize = Process.pointerSize;
+                            /*
+                                https://android.googlesource.com/platform/libnativehelper/+/master/include_jni/jni.h#129
+                                typedef struct {
+                                    const char* name;
+                                    const char* signature;
+                                    void* fnPtr;
+                                } JNINativeMethod;
+                            */
+                            var structSize = pSize * 3; // JNINativeMethod contains 3 pointers
+                            var namePtr = Memory.readPointer(methodsPtr.add(i * structSize));
+                            var sigPtr = Memory.readPointer(methodsPtr.add(i * structSize + pSize));
+                            var fnPtrPtr = Memory.readPointer(methodsPtr.add(i * structSize + (pSize * 2)));
+                            // output schema: className#methodName(arguments)returnVal@address
+                            console.log(
+                                // package & class, replacing forward slash with dot for convenience
+                                jclassAddress2NameMap[args[0]].replace(/\//g, '.') +
+                                '#' + Memory.readCString(namePtr) + // method
+                                Memory.readCString(sigPtr) + // signature (arguments & return type)
+                                '@' + fnPtrPtr // C side address
+                            );
+                        }
+                    },
+                    onLeave: function (ignoredReturnValue) {}
+                });
+                break;
+            case "_ZN3art3JNI9FindClassEP7_JNIEnvPKc": // art::JNI::FindClass
+                Interceptor.attach(symbol.address, {
+                    onEnter: function(args) {
+                        if (args[1] != null) {
+                            jclassAddress2NameMap[args[0]] = Memory.readCString(args[1]);
+                        }
+                    },
+                    onLeave: function (ignoredReturnValue) {}
+                });
+                break;
+        }
+    });
+    fIntercepted = true;
+}
+
+Java.perform(revealNativeMethods);
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+#### Log method arguments
+
+
+```python
+def on_message(m, _data):
+    if m['type'] == 'send':
+        print(m['payload'])
+    elif m['type'] == 'error':
+        print(m)
+
+
+def switch(argument_key, idx):
+    """
+    c/c++ variable type to javascript reader switch implementation
+    # TODO handle other arguments, [long, longlong..]
+    :param argument_key: variable type
+    :param idx: index in symbols array
+    :return: javascript to read the type of variable
+    """
+    argument_key = argument_key.replace(' ', '')
+    return '%d: %s' % (idx, {
+        'int': 'args[%d].toInt32(),',
+        'unsignedint': 'args[%d].toInt32(),',
+        'std::string': 'Memory.readUtf8String(Memory.readPointer(args[%d])),',
+        'bool': 'Boolean(args[%d]),'
+    }[argument_key] % idx)
+
+
+def list_symbols_from_object_files(module_id):
+    import subprocess
+    return subprocess.getoutput('nm --demangle --dynamic %s' % module_id)
+
+
+def parse_nm_output(nm_stdout, symbols):
+    for line in nm_stdout.splitlines():
+        split = line.split()
+        open_parenthesis_idx = line.find('(')
+        raw_arguments = [] if open_parenthesis_idx == -1 else line[open_parenthesis_idx + 1:-1]
+        if len(raw_arguments) > 0:  # ignore methods without arguments
+            raw_argument_list = raw_arguments.split(',')
+            symbols.append({
+                'address': split[0],
+                'type': split[1],  # @see Symbol Type Table
+                'name': split[2][:split[2].find('(')],  # method name
+                'args': raw_argument_list
+            })
+
+
+def get_js_script(method, module_id):
+    js_script = """
+        var moduleName = "{{moduleName}}", nativeFuncAddr = {{methodAddress}};
+        Interceptor.attach(Module.findExportByName(null, "dlopen"), {
+            onEnter: function(args) {
+                this.lib = Memory.readUtf8String(args[0]);
+                console.log("[*] dlopen called with: " + this.lib);
+            },
+            onLeave: function(retval) {
+                if (this.lib.endsWith(moduleName)) {
+                    Interceptor.attach(Module.findBaseAddress(moduleName).add(nativeFuncAddr), {
+                        onEnter: function(args) {
+                            console.log("[*] hook invoked", JSON.stringify({{arguments}}, null, '\t'));
+                        }
+                    });
+                }
+            }
+        });
+    """
+    replace_map = {
+        '{{moduleName}}': module_id,
+        '{{methodAddress}}': '0x' + method['address'],
+        '{{arguments}}': '{' + ''.join([switch(method['args'][i], i + 1) for i in range(len(method['args']))]) + '}'
+    }
+    for k, v in replace_map.items():
+        js_script = js_script.replace(k, v)
+    print('[+] JS Script:\n', js_script)
+    return js_script
+
+
+def main(app_id, module_id, method):
+    """
+    $ python3.x+ script.py --method SomeClass::someMethod --app com.company.app --module libfoo.so
+    :param app_id: application identifier / bundle id 
+    :param module_id: shared object identifier / known suffix, will iterate loaded modules (@see dlopen) 
+    :param method: method/symbol name
+    :return: hook native method and print arguments when invoked
+    """
+    # TODO extract all app's modules via `adb shell -c 'ls -lR /data/app/' + app_if + '*' | grep "\.so"`
+
+    nm_stdout = list_symbols_from_object_files(module_id)
+
+    symbols = []
+    parse_nm_output(nm_stdout, symbols)
+
+    selection_idx = None
+    for idx, symbol in enumerate(symbols):
+        if method is None:  # if --method flag is not passed
+            print("%4d) %s (%d)" % (idx, symbol['name'], len(symbol['args'])))
+        elif method == symbol['name']:
+            selection_idx = idx
+            break
+    if selection_idx is None:
+        if method is None:
+            selection_idx = input("Enter symbol number: ")
+        else:
+            print('[+] Method not found, remove method flag to get list of methods to select from, `nm` stdout:')
+            print(nm_stdout)
+            exit(2)
+
+    method = symbols[int(selection_idx)]
+    print('[+] Selected method: %s' % method['name'])
+    print('[+] Method arguments: %s' % method['args'])
+
+    from frida import get_usb_device
+    device = get_usb_device()
+    pid = device.spawn([app_id])
+    session = device.attach(pid)
+    script = session.create_script(get_js_script(method, module_id))
+    script.on('message', on_message)
+    script.load()
+    device.resume(app_id)
+    # keep hook alive
+    from sys import stdin
+    stdin.read()
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--app', help='app identifier "com.company.app"')
+    parser.add_argument('--module', help='loaded module name "libfoo.2.so"')
+    parser.add_argument('--method', help='method name "SomeClass::someMethod", if empty it will print select-list')
+    args = parser.parse_args()
+    main(args.app, args.module, args.method)
+
+```
+
+<details>
+<summary>Symbol Type Table</summary>
+```
+    "A" The symbol's value is absolute, and will not be changed by further linking.
+    "B" The symbol is in the uninitialized data section (known as BSS).
+    "C" The symbol is common.  Common symbols are uninitialized data.
+       When linking, multiple common symbols may appear	with the same name.  
+       If the symbol is defined anywhere, the common symbols are treated as undefined	references.
+    "D" The symbol is in the initialized data section.
+    "G" The symbol is in an initialized data section for small objects.
+       Some object file formats permit more efficient access to small data objects, such as a global int variable as 
+       opposed to a large global array.
+    "I" The symbol is an indirect reference to another symbol.
+       This is a GNU extension to the a.out object file format which is rarely used.
+    "N" The symbol is a debugging symbol.
+    "R" The symbol is in a read only data section.
+    "S" The symbol is in an uninitialized data section for small objects.
+    "T" The symbol is in the text (code) section.
+    "U" The symbol is undefined.
+    "V" The symbol is a weak object. When a weak defined symbol is linked with a normal defined symbol, 
+        the normal defined symbol is used with no error.  
+        When a weak undefined symbol is linked and the symbol is not defined, the value of the weak symbol becomes 
+        zero with no error.
+    "W" The symbol is a weak symbol that has not been specifically tagged as a weak object symbol. 
+        When a weak defined symbol is linked with a normal defined symbol, 
+        the normal defined symbol is used with no error.  
+        When a weak undefined symbol is linked and the symbol is not defined, the value of the symbol is determined 
+        in a system-specific manner without error.  
+        On some systems, uppercase indicates that a default value has been specified.
+    "-" The symbol is a stabs symbol in an a.out object file.  
+        In this case, the next values printed are the stabs other field, the stabs desc field, and the stab type.  
+        Stabs symbols are used to hold debugging information.
+    "?" The symbol type is unknown, or object file format specific.
+```
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
@@ -437,6 +694,31 @@ TODO
 
 <br>[⬆ Back to top](#table-of-contents)
 
+#### String comparison
+
+
+```js
+Java.perform(function() {
+    var str = Java.use('java.lang.String'), objectClass = 'java.lang.Object';
+    str.equals.overload(objectClass).implementation = function(obj) {
+        var response = str.equals.overload(objectClass).call(this, obj);
+        if (obj) {
+            if (obj.toString().length > 5) {
+                send(str.toString.call(this) + ' == ' + obj.toString() + ' ? ' + response);
+            }
+        }
+        return response;
+    }
+});
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
 #### Hook JNI by address
 
 Hook native method by module name and method address and print arguments.
@@ -500,6 +782,155 @@ TODO
       console.log('hooked!', a, b, c);
       return this.invoke(a,b,c);
   };
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+#### Trace class
+
+Tracing class method, with pretty colors and options to print as JSON & stacktrace.
+
+TODO add trace for c'tor.
+
+```js
+
+var Color = {
+    RESET: "\x1b[39;49;00m", Black: "0;01", Blue: "4;01", Cyan: "6;01", Gray: "7;11", Green: "2;01", Purple: "5;01", Red: "1;01", Yellow: "3;01",
+    Light: {
+        Black: "0;11", Blue: "4;11", Cyan: "6;11", Gray: "7;01", Green: "2;11", Purple: "5;11", Red: "1;11", Yellow: "3;11"
+    }
+};
+
+/**
+ *
+ * @param input. 
+ *      If an object is passed it will print as json 
+ * @param kwargs  options map {
+ *     -l level: string;   log/warn/error
+ *     -i indent: boolean;     print JSON prettify
+ *     -c color: @see ColorMap
+ * }
+ */
+var LOG = function (input, kwargs) {
+    kwargs = kwargs || {};
+    var logLevel = kwargs['l'] || 'log', colorPrefix = '\x1b[3', colorSuffix = 'm';
+    if (typeof input === 'object')
+        input = JSON.stringify(input, null, kwargs['i'] ? 2 : null);
+    if (kwargs['c'])
+        input = colorPrefix + kwargs['c'] + colorSuffix + input + Color.RESET;
+    console[logLevel](input);
+};
+
+var printBacktrace = function () {
+    Java.perform(function() {
+        var android_util_Log = Java.use('android.util.Log'), java_lang_Exception = Java.use('java.lang.Exception');
+        // getting stacktrace by throwing an exception
+        LOG(android_util_Log.getStackTraceString(java_lang_Exception.$new()), { c: Color.Gray });
+    });
+};
+
+function traceClass(targetClass) {
+    var hook;
+    try {
+        hook = Java.use(targetClass);
+    } catch (e) {
+        console.error("trace class failed", e);
+        return;
+    }
+
+    var methods = hook.class.getDeclaredMethods();
+    hook.$dispose();
+
+    var parsedMethods = [];
+    methods.forEach(function (method) {
+        var methodStr = method.toString();
+        var methodReplace = methodStr.replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1];
+         parsedMethods.push(methodReplace);
+    });
+
+    uniqBy(parsedMethods, JSON.stringify).forEach(function (targetMethod) {
+        traceMethod(targetClass + '.' + targetMethod);
+    });
+}
+
+function traceMethod(targetClassMethod) {
+    var delim = targetClassMethod.lastIndexOf('.');
+    if (delim === -1)
+        return;
+
+    var targetClass = targetClassMethod.slice(0, delim);
+    var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length);
+
+    var hook = Java.use(targetClass);
+    var overloadCount = hook[targetMethod].overloads.length;
+
+    LOG({ tracing: targetClassMethod, overloaded: overloadCount }, { c: Color.Green });
+
+    for (var i = 0; i < overloadCount; i++) {
+        hook[targetMethod].overloads[i].implementation = function () {
+            var log = { '#': targetClassMethod, args: [] };
+
+            for (var j = 0; j < arguments.length; j++) {
+                var arg = arguments[j];
+                // quick&dirty fix for java.io.StringWriter char[].toString() impl because frida prints [object Object]
+                if (j === 0 && arguments[j]) {
+                    if (arguments[j].toString() === '[object Object]') {
+                        var s = [];
+                        for (var k = 0, l = arguments[j].length; k < l; k++) {
+                            s.push(arguments[j][k]);
+                        }
+                        arg = s.join('');
+                    }
+                }
+                log.args.push({ i: j, o: arg, s: arg ? arg.toString(): 'null'});
+            }
+
+            var retval;
+            try {
+                retval = this[targetMethod].apply(this, arguments); // might crash (Frida bug?)
+                log.returns = { val: retval, str: retval ? retval.toString() : null };
+            } catch (e) {
+                console.error(e);
+            }
+            LOG(log, { c: Color.Blue });
+            return retval;
+        }
+    }
+}
+
+// remove duplicates from array
+function uniqBy(array, key) {
+    var seen = {};
+    return array.filter(function (item) {
+        var k = key(item);
+        return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+    });
+}
+
+
+var Main = function() {
+    Java.perform(function () { // avoid java.lang.ClassNotFoundException
+        [
+            // "java.io.File",
+            'java.net.Socket'
+        ].forEach(traceClass);
+
+        Java.use('java.net.Socket').isConnected.overload().implementation = function () {
+            LOG('Socket.isConnected.overload', { c: Color.Light.Cyan });
+            printBacktrace();
+            return true;
+        }
+    });
+};
+
+Java.perform(Main);
+
+
 ```
 
 <details>
