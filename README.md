@@ -1,21 +1,17 @@
 ## Table of Contents
 
-### Native
-
 <details>
-<summary>View contents</summary>
+<summary>Native</summary>
 
 * [`Intercept open`](#intercept-open)
 * [`Execute shell command`](#execute-shell-command)
-* [`List modules`][#list-modules)
+* [`List modules`](#list-modules)
 * [`Log SQLite query`](#log-sqlite-query)
 
 </details>
 
-### Android
-
 <details>
-<summary>View contents</summary>
+<summary>Android</summary>
 
 * [`Enumerate loaded classes`](#enumerate-loaded-classes) 
 * [`Class description`](#class-description)
@@ -32,10 +28,8 @@
 
 </details>
 
-### iOS
-
 <details>
-<summary>View contents</summary>
+<summary>iOS</summary>
 
 * [`iOS alert box`](#ios-alert-box) 
 * [`File access`](#file-access)
@@ -46,6 +40,8 @@
 * [`Class hierarchy`](#class-hierarchy) 
 
 </details>
+
+<hr />
 
 #### Intercept Open
 
