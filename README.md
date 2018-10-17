@@ -674,16 +674,17 @@ Java.perform(function() {
     var func = 'toString';
     Java.use(clazz)[func].implementation = function() {
       var ret = this[func]();
+      if (ret.indexOf('') != -1) {
+        // print stacktrace if return value contains specific string
+        Java.perform(function() {
+          var jAndroidLog = Java.use("android.util.Log"), jException = Java.use("java.lang.Exception");
+          console.log( jAndroidLog.getStackTraceString( jException.$new() ) );
+        }); 
+      }   
       send('[' + i + '] ' + ret);
-      // raising an exception to get stacktrace
-      Java.perform(function() {
-          Java.use('java.lang.Exception').$new().getStackTrace().toString().split(',').forEach(function(l) {
-              console.log('\t[*] ' + l);
-          });
-      });
-    }
-    return ret;
-  };
+      return ret;
+    }   
+  }); 
 });
 ```
 
