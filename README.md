@@ -1203,3 +1203,4 @@ TODO
 * https://kov4l3nko.github.io/blog/2018-05-27-sll-pinning-hook-sectrustevaluate/
 * https://www.codemetrix.net/hacking-android-apps-with-frida-1/
 * https://awakened1712.github.io/hacking/hacking-frida/
+* https://techblog.mediaservice.net/2018/11/universal-android-ssl-pinning-bypass-2/ # can be improved https://android.googlesource.com/platform/external/conscrypt/+/idea133-weekly-release/src/main/java/org/conscrypt/TrustManagerImpl.java
