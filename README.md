@@ -512,11 +512,11 @@ It will turn WiFi off on the creation of the first Acivity.
 
 ```js
 var WifiManager = Java.use("android.net.wifi.WifiManager");
-Java.use("android.app.Activity").onCreate.overload('android.os.Bundle').implementation = function() {
+Java.use("android.app.Activity").onCreate.overload("android.os.Bundle").implementation = function(bundle) {
     var wManager = Java.cast(this.getSystemService("wifi"), WifiManager);
-    console.log('isWifiEnabled', wManager.isWifiEnabled());
+    console.log('isWifiEnabled ?', wManager.isWifiEnabled());
     wManager.setWifiEnabled(false);
-    return this.$init();
+    this.$init(bundle);
 }
 ```
 
