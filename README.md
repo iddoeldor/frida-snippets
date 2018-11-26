@@ -174,6 +174,16 @@ def ls(folder):
         print(chunk.strip().decode())
 ```
 
+Pull binary from iOS
+
+```python
+cmd = Shell(['/bin/sh', '-c', 'cat /System/Library/PrivateFrameworks/Example.framework/example'], None)
+cmd.exec()
+with open('/tmp/example', 'wb+') as f:
+    f.writelines(cmd.output)
+ # $ file /tmp/example
+ # /tmp/example: Mach-O 64-bit 64-bit architecture=12 executable
+```
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
