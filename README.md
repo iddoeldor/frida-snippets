@@ -29,7 +29,7 @@
 * [`String comparison`](#string-comparison)
 * [`Hook JNI by address`](#hook-jni-by-address)
 * [`Hook constructor`](#hook-constructor)
-* [`Hook Java refelaction`](#hook-refelaction)
+* [`Hook Java reflection`](#hook-refelaction)
 * [`Trace class`](#trace-class)
 
 </details>
@@ -793,7 +793,7 @@ TODO
 
 <br>[⬆ Back to top](#table-of-contents)
 
-#### Hook refelaction
+#### Hook reflection
 
 `java.lang.reflect.Method#invoke(Object obj, Object... args, boolean bool)`
 
