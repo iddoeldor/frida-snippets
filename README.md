@@ -44,6 +44,7 @@
 * [`Extract cookies`](#extract-cookies)
 * [`Describe class members`](#describe-class-members)
 * [`Class hierarchy`](#class-hierarchy) 
+* [`Hook refelaction`](#hook-refelaction)
 
 </details>
 
@@ -1199,6 +1200,46 @@ classes.forEach(function(name) {
 send(tree);
 ```
 
+
+<details>
+<summary>Output example</summary>
+TODO	
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+#### Hook refelaction 
+Hooking `objc_msgSend`
+
+```py
+import frida, sys
+
+f = open('/tmp/log', 'w')    
+
+def on_message(msg, _data):
+    f.write(msg['payload']+'\n')
+
+frida_script = """
+  Interceptor.attach(Module.findExportByName('/usr/lib/libobjc.A.dylib', 'objc_msgSend'), {
+    onEnter: function(args) {
+     var m = Memory.readCString(args[1]);
+     if (m != 'length' && !m.startsWith('_fastC'))
+        send(m);
+    }
+  });
+"""
+device = frida.get_usb_device()
+pid = device.spawn(["com.example"])
+session = device.attach(pid)
+script = session.create_script(frida_script)
+script.on('message', on_message)
+script.load()
+device.resume(pid)
+sys.stdin.read()
+```
+```sh
+$ sort /tmp/log | uniq -c | sort -n
+```
 
 <details>
 <summary>Output example</summary>
