@@ -11,6 +11,7 @@
 * [`Log SQLite query`](#log-sqlite-query)
 * [`Reveal manually registered native symbols`](#reveal-native-methods)
 * [`Log method arguments`](#log-method-arguments)
+* [`Intercept entire module`](#intercept-entire-module)
 
 </details>
 
@@ -1248,8 +1249,36 @@ TODO
 
 <br>[⬆ Back to top](#table-of-contents)
 
+#### Intercept Entire Module
 
+To reduce UI related functions I ues the following steps:
 
+1. Output log to a file using `-o /tmp/log1`   
+2. Copy MRU to excludesList using `$ sort /tmp/log1 | uniq -c | sort -rn | head -n20 | cut -d# -f2 | paste -sd "," -`
+
+```js
+var mName = 'MyModule', excludeList = ['Alot', 'Of', 'UI', 'Related', 'Functions'];
+Module.enumerateExportsSync(mName)
+  .filter(function(e) {
+    var fromTypeFunction = e.type == 'function';·
+    var notInExcludes = excludeList.indexOf(e.name) == -1;
+    return fromTypeFunction && notInExcludes;
+  })
+  .forEach(function(e) {
+    Interceptor.attach(Module.findExportByName(mName, e.name), {
+      onEnter: function(args) {
+        console.log(mName + "#'" + e.name + "'");
+      }
+    })
+  })
+```
+
+<details>
+<summary>Output example</summary>
+TODO	
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
 #### TODOs 
 - Add GIFs & examples
 - Add links to /scripts
