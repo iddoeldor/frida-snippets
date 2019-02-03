@@ -1112,18 +1112,24 @@ TODO
 #### Extract cookies
 
 ```js
- var cookieJar = [];
- var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage().cookies();
- for (var i = 0, l = cookies.count(); i < l; i++) {
-     var cookie = cookies['- objectAtIndex:'](i);
-     cookieJar.push(cookie.Name() + '=' + cookie.Value());
- }
- console.log(cookieJar.join("; "));
+var cookieJar = {};
+var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage().co
+okies();
+for (var i = 0, l = cookies.count(); i < l; i++) {
+  var cookie = cookies['- objectAtIndex:'](i);
+  cookieJar[cookie.Name()] = cookie.Value().toString();
+}
+console.log(JSON.stringify(cookieJar, null, 2));
 ```
 
 <details>
 <summary>Output example</summary>
-TODO	
+```js
+{
+  "key1": "value 1",
+  "key2": "value 2"
+}
+```
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
