@@ -1113,11 +1113,10 @@ TODO
 
 ```js
 var cookieJar = {};
-var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage().co
-okies();
+var cookies = ObjC.classes.NSHTTPCookieStorage.sharedHTTPCookieStorage().cookies();
 for (var i = 0, l = cookies.count(); i < l; i++) {
   var cookie = cookies['- objectAtIndex:'](i);
-  cookieJar[cookie.Name()] = cookie.Value().toString();
+  cookieJar[cookie.Name()] = cookie.Value().toString(); // ["- expiresDate"]().toString()
 }
 console.log(JSON.stringify(cookieJar, null, 2));
 ```
