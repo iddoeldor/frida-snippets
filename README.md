@@ -33,7 +33,7 @@
 * [`Hook Java reflection`](#hook-refelaction)
 * [`Trace class`](#trace-class)
 * [`Hooking Unity3d`](https://github.com/iddoeldor/mplus)
-
+* [`Get Android ID`](#get-android-id)
 </details>
 
 <details>
@@ -959,6 +959,27 @@ Java.perform(Main);
 <details>
 <summary>Output example</summary>
 TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+#### Get Android ID
+The [ANDROID_ID](https://developer.android.com/reference/android/provider/Settings.Secure.html#ANDROID_ID) is unique in each application in Android.
+
+
+```javascript
+function getContext() {
+  return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext().getContentResolver();
+}
+
+function logAndroidId() {
+  console.log('[-]', Java.use('android.provider.Settings$Secure').getString(getContext(), 'android_id'));
+}
+```
+
+<details>
+<summary>Output example</summary>
+https://stackoverflow.com/a/54818023/2655092
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
