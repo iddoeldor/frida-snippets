@@ -34,6 +34,7 @@
 * [`Trace class`](#trace-class)
 * [`Hooking Unity3d`](https://github.com/iddoeldor/mplus)
 * [`Get Android ID`](#get-android-id)
+* [`Bypass FLAG_SECURE`](#bypass-flag_secure)
 </details>
 
 <details>
@@ -983,6 +984,35 @@ https://stackoverflow.com/a/54818023/2655092
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+
+#### Bypass FLAG_SECURE
+Bypass screenshot prevention [stackoverflow question](https://stackoverflow.com/questions/9822076/how-do-i-prevent-android-taking-a-screenshot-when-my-app-goes-to-the-background)
+
+```javascript
+Java.perform(function() {
+    Java.use('android.view.SurfaceView').setSecure.overload('boolean').implementation = function(flag){
+        console.log('[1] flag:', flag);
+        this.call(false);
+    };
+    var LayoutParams = Java.use('android.view.WindowManager$LayoutParams');
+    Java.use('android.view.ViewWindow').setFlags.overload('int', 'int').implementation = function(flags, mask){
+        console.log('flag secure: ', LayoutParams.FLAG_SECURE.value);
+        console.log('before:', flags);
+        flags = (flags.value & ~LayoutParams.FLAG_SECURE.value);
+        console.log('after:', flags);
+        this.call(this, flags, mask);
+    };
+});
+```
+
+<details>
+<summary>Output example</summary>
+https://stackoverflow.com/a/54818023/2655092
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
 
 #### iOS alert box
 
