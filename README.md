@@ -35,6 +35,7 @@
 * [`Hooking Unity3d`](https://github.com/iddoeldor/mplus)
 * [`Get Android ID`](#get-android-id)
 * [`Bypass FLAG_SECURE`](#bypass-flag_secure)
+* [`Shared Preferences update`](#shared-preferences-update)
 </details>
 
 <details>
@@ -1009,6 +1010,24 @@ Java.perform(function() {
 <details>
 <summary>Output example</summary>
 https://stackoverflow.com/a/54818023/2655092
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+#### Shared Preferences update
+
+```javascript
+function notifyNewSharedPreference() {
+  Java.use('android.app.SharedPreferencesImpl$EditorImpl').putString.overload('java.lang.String', 'java.lang.String').implementation = function(k, v) {
+    console.log('[SharedPreferencesImpl]', k, '=', v);
+    return this.putString(k, v);
+  }
+}
+```
+
+<details>
+<summary>Output example</summary>
+TODO
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
