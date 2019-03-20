@@ -67,27 +67,28 @@ An example for intercepting `libc#open` & logging backtrace if specific file was
 
 ```js
 Interceptor.attach(Module.findExportByName("/system/lib/libc.so", "open"), {
-	onEnter: function(args) {
-		// debug only the intended calls
-		this.flag = false;
-		var filename = Memory.readCString(ptr(args[0]));
-		if (filename.indexOf("something") != -1) {
-			this.flag = true;
-			var backtrace = Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n\t");
-			console.log("file name [ " + Memory.readCString(ptr(args[0])) + " ]\nBacktrace:" + backtrace);
-		}
-	},
-	onLeave: function(retval) {
-		if (this.flag) // passed from onEnter
-			console.warn("\nretval: " + retval);
-	}
+  onEnter: function(args) {
+    this.flag = false;
+    var filename = Memory.readCString(ptr(args[0]));
+    console.log('filename =', filename)
+    if (filename.endsWith(".xml")) {
+      this.flag = true;
+      var backtrace = Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n\t");
+      console.log("file name [ " + Memory.readCString(ptr(args[0])) + " ]\nBacktrace:" + backtrace);
+    }
+  },
+  onLeave: function(retval) {
+    if (this.flag) // passed from onEnter
+      console.warn("\nretval: " + retval);
+  }
 });
 ```
 
 <details>
 <summary>Output example</summary>
+Intecepting `com.android.chrome`
+![](gif/intercept_open_chrome_android.gif)
 
-TODO
 
 </details>
 
