@@ -87,7 +87,8 @@ Interceptor.attach(Module.findExportByName("/system/lib/libc.so", "open"), {
 <details>
 <summary>Output example</summary>
 Intecepting `com.android.chrome`
-![](gif/intercept_open_chrome_android.gif)
+	
+![](https://github.com/iddoeldor/frida-snippets/blob/master/gif/intercept_open_chrome_android.gif)
 
 
 </details>
