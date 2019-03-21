@@ -49,6 +49,7 @@
 * [`Describe class members`](#describe-class-members)
 * [`Class hierarchy`](#class-hierarchy) 
 * [`Hook refelaction`](#hook-refelaction)
+* [`Device properties`](#device-properties)
 
 </details>
 
@@ -1357,6 +1358,76 @@ TODO
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+
+#### Device properties
+Example of quick&dirty iOS device properties extraction
+
+```js
+var UIDevice = ObjC.classes.UIDevice.currentDevice();
+UIDevice.$ownMethods
+  .filter(function(method) { 
+    return method.indexOf(':') == -1 /* filter out methods with parameters */·
+       && method.indexOf('+') == -1 /* filter out public methods */
+  })
+  .forEach(function(method) { 
+    console.log(method, ':', UIDevice[method]())
+  })
+
+```
+
+<details>
+<summary>Output example</summary>
+
+```
+- sbf_bannerGraphicsQuality : 100 
+- sbf_controlCenterGraphicsQuality : 100 
+- sbf_homeScreenFolderGraphicsQuality : 100 
+- sbf_searchTransitionGraphicsQuality : 100 
+- sbf_dashBoardPresentationGraphicsQuality : 100 
+- sbf_homeScreenBlurGraphicsQuality : 100 
+- userInterfaceIdiom : 0 
+- _supportsDeepColor : false
+- name : iPhone
+- _keyboardGraphicsQuality : 100 
+- isGeneratingDeviceOrientationNotifications : true
+- orientation : 1 
+- _backlightLevel : 1 
+- isProximityMonitoringEnabled : false
+- systemVersion : 11.1.1
+- _graphicsQuality : 100 
+- beginGeneratingDeviceOrientationNotifications : undefined
+- endGeneratingDeviceOrientationNotifications : undefined
+- buildVersion : 15C222
+- systemName : iOS 
+- _isSystemSoundEnabled : true
+- _feedbackSupportLevel : 1 
+- model : iPhone
+- _supportsForceTouch : true
+- localizedModel : iPhone
+- identifierForVendor : 4A7B44DB-AAAA-BBB-CCC-D8819581DDD
+- isBatteryMonitoringEnabled : false
+- batteryState : 0 
+- batteryLevel : -1
+- proximityState : false
+- isMultitaskingSupported : true
+- playInputClick : undefined
+- _softwareDimmingAlpha : 0 
+- _playInputSelectSound : undefined
+- _playInputDeleteSound : undefined
+- _hasGraphicsQualityOverride : false
+- _hasTouchPad : false
+- _clearGraphicsQualityOverride : undefined
+- _predictionGraphicsQuality : 100 
+- _nativeScreenGamut : 0 
+- _tapticEngine : <_UITapticEngine: 0x1c06257c0>
+```
+
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
 #### TODOs 
 - Add GIFs & examples
 - Add links to /scripts
