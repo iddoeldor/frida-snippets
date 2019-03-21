@@ -1380,6 +1380,13 @@ UIDevice.$ownMethods
 <summary>Output example</summary>
 
 ```
+- adjTrackingEnabled : true
+- adjFbAttributionId : 
+- adjVendorId : 4AAAAAAA-CECC-4BBB-BDDD-DEEEEEEEED18
+- adjDeviceType : iPhone
+- adjDeviceName : iPhone8,2
+- adjCreateUuid : dfaaaa2-ebbd-4ccc-addd-eaeeeeeeee7c
+- adjIdForAdvertisers : 7AAAAA3A-4BBB-4CCC-BDDD-0EEEEEEEE8A6
 - sbf_bannerGraphicsQuality : 100 
 - sbf_controlCenterGraphicsQuality : 100 
 - sbf_homeScreenFolderGraphicsQuality : 100 
