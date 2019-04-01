@@ -44,7 +44,7 @@
 * [`iOS alert box`](#ios-alert-box) 
 * [`File access`](#file-access)
 * [`Observe class`](#observe-class)
-* [`Find application UUID`](#find-application-uuid)
+* [`Find application UUID`](#find-ios-application-uuid)
 * [`Extract cookies`](#extract-cookies)
 * [`Describe class members`](#describe-class-members)
 * [`Class hierarchy`](#class-hierarchy) 
@@ -1155,7 +1155,12 @@ function extractUUIDfromPath(path) {
     var bundleIdentifier = String(ObjC.classes.NSBundle.mainBundle().objectForInfoDictionaryKey_('CFBundleIdentifier'));
     var path_prefix = path.substr(0, path.indexOf(PLACEHOLDER));
     var plist_metadata = '/.com.apple.mobile_container_manager.metadata.plist';
-    var folders = ObjC.classes.NSFileManager.defaultManager().contentsOfDirectoryAtPath_error_(path_prefix, NULL);
+    var errorPtr = Memory.alloc(Process.pointerSize); 
+    Memory.writePointer(errorPtr, NULL); 
+    var folders = ObjC.classes.NSFileManager.defaultManager().contentsOfDirectoryAtPath_error_(path_prefix, errorPtr);
+    var error = Memory.readPointer(errorPtr);
+    if (errorPtr) 
+    	console.error( new ObjC.Object( error ) );
     for (var i = 0, l = folders.count(); i < l; i++) {
         var uuid = folders.objectAtIndex_(i);
         var metadata = path_prefix + uuid + plist_metadata;
