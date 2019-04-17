@@ -69,8 +69,8 @@
 ```js
 Module.enumerateExportsSync(
   // finding socket module path
-  Process.enumerateModulesSync().filter(function(m){·
-    return m.name === { linux: 'libc.so', darnwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
+  Process.enumerateModulesSync().filter(function(m){
+    return m.name === { linux: 'libc.so', darwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
   })[0].path
 ).forEach(function(ex){
   if ( 
@@ -106,8 +106,8 @@ Android example
 Java.perform(function(){
 Module.enumerateExportsSync(
   // finding socket module path
-  Process.enumerateModulesSync().filter(function(m){·
-    return m.name === { linux: 'libc.so', darnwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
+  Process.enumerateModulesSync().filter(function(m){
+    return m.name === { linux: 'libc.so', darwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
   })[0].path
 ).forEach(function(ex){
   if ( 
