@@ -67,31 +67,35 @@
 #### Socket activity
 
 ```js
-  var socketFunctionPrefixes = ['connect', 'recv', 'send', 'read', 'write'];
-  function isSocketFunction(name) {
-    return socketFunctionPrefixes.some(function (prefix) {
-        return name.indexOf(prefix) === 0;
-    }); 
-  }
-  var libcPath = Process.enumerateModulesSync().filter(function(m){return m.name.indexOf('libc.so')!=-1})[0].path;  // on iOS (darwin) instead of libc search for libSystem.B.dylib
-  Module.enumerateExportsSync(libcPath).forEach(function(ex){
-    if (ex.type === 'function' && isSocketFunction(ex.name)) {
-      Interceptor.attach(ex.address, {
-        onEnter: function (args) {
-          this.fd = args[0].toInt32();
-        },
-        onLeave: function (retval) {
-          var fd = this.fd;
-          if (Socket.type(fd) !== 'tcp')
-              return;
-          var address = Socket.peerAddress(fd);
-          if (address === null)
+Module.enumerateExportsSync(
+  // finding socket module path
+  Process.enumerateModulesSync().filter(function(m){·
+    return m.name === { linux: 'libc.so', darnwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
+  })[0].path
+).forEach(function(ex){
+  if ( 
+    ex.type === 'function' &&·
+    // if function contains the prefix of one of the socket related functions
+    ['connect', 'recv', 'send', 'read', 'write'].some(function(prefix) { 
+      return ex.name.indexOf(prefix) === 0 
+    })
+  ) { 
+    Interceptor.attach(ex.address, { 
+      onEnter: function (args) { 
+        this.fd = args[0].toInt32();
+      },
+      onLeave: function (retval) { 
+        var fd = this.fd;
+        if (Socket.type(fd) !== 'tcp')
             return;
-          console.log(fd, ex.name, address.ip + ':' + address.port);
-        }
-      }); 
-    }   
-  }); 
+        var address = Socket.peerAddress(fd);
+        if (address === null)
+          return;
+        console.log(fd, ex.name, address.ip + ':' + address.port);
+      } 
+    });
+  } 
+});
 ```
 
 <details>
@@ -100,31 +104,35 @@
 Android example
 ```
 Java.perform(function(){
-  var socketFunctionPrefixes = ['connect', 'recv', 'send', 'read', 'write'];
-  function isSocketFunction(name) {
-    return socketFunctionPrefixes.some(function (prefix) {
-        return name.indexOf(prefix) === 0;
-    }); 
-  }
-  var libcPath = Process.enumerateModulesSync().filter(function(m){return m.name.indexOf('libc.so')!=-1})[0].path;
-  Module.enumerateExportsSync(libcPath).forEach(function(ex){
-    if (ex.type === 'function' && isSocketFunction(ex.name)) {
-      Interceptor.attach(ex.address, {
-        onEnter: function (args) {
-          this.fd = args[0].toInt32();
-        },
-        onLeave: function (retval) {
-          var fd = this.fd;
-          if (Socket.type(fd) !== 'tcp')
-              return;
-          var address = Socket.peerAddress(fd);
-          if (address === null)
+Module.enumerateExportsSync(
+  // finding socket module path
+  Process.enumerateModulesSync().filter(function(m){·
+    return m.name === { linux: 'libc.so', darnwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
+  })[0].path
+).forEach(function(ex){
+  if ( 
+    ex.type === 'function' &&·
+    // if function contains the prefix of one of the socket related functions
+    ['connect', 'recv', 'send', 'read', 'write'].some(function(prefix) { 
+      return ex.name.indexOf(prefix) === 0 
+    })
+  ) { 
+    Interceptor.attach(ex.address, { 
+      onEnter: function (args) { 
+        this.fd = args[0].toInt32();
+      },
+      onLeave: function (retval) { 
+        var fd = this.fd;
+        if (Socket.type(fd) !== 'tcp')
             return;
-          console.log(fd, ex.name, address.ip + ':' + address.port);
-        }
-      }); 
-    }   
-  }); 
+        var address = Socket.peerAddress(fd);
+        if (address === null)
+          return;
+        console.log(fd, ex.name, address.ip + ':' + address.port);
+      } 
+    });
+  } 
+});
 });
 ```
 ```sh
