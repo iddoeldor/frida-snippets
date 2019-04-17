@@ -5,6 +5,7 @@
 <details>
 <summary>Native</summary>
 
+* [`Socket activity`](#socket-activity)
 * [`Intercept open`](#intercept-open)
 * [`Execute shell command`](#execute-shell-command)
 * [`List modules`](#list-modules)
@@ -61,6 +62,83 @@
 </details>
 
 <hr />
+
+
+#### Socket activity
+
+```js
+  var socketFunctionPrefixes = ['connect', 'recv', 'send', 'read', 'write'];
+  function isSocketFunction(name) {
+    return socketFunctionPrefixes.some(function (prefix) {
+        return name.indexOf(prefix) === 0;
+    }); 
+  }
+  var libcPath = Process.enumerateModulesSync().filter(function(m){return m.name.indexOf('libc.so')!=-1})[0].path;  // on iOS (darwin) instead of libc search for libSystem.B.dylib
+  Module.enumerateExportsSync(libcPath).forEach(function(ex){
+    if (ex.type === 'function' && isSocketFunction(ex.name)) {
+      Interceptor.attach(ex.address, {
+        onEnter: function (args) {
+          this.fd = args[0].toInt32();
+        },
+        onLeave: function (retval) {
+          var fd = this.fd;
+          if (Socket.type(fd) !== 'tcp')
+              return;
+          var address = Socket.peerAddress(fd);
+          if (address === null)
+            return;
+          console.log(fd, ex.name, address.ip + ':' + address.port);
+        }
+      }); 
+    }   
+  }); 
+```
+
+<details>
+<summary>Output example</summary>
+	
+Android example
+```
+Java.perform(function(){
+  var socketFunctionPrefixes = ['connect', 'recv', 'send', 'read', 'write'];
+  function isSocketFunction(name) {
+    return socketFunctionPrefixes.some(function (prefix) {
+        return name.indexOf(prefix) === 0;
+    }); 
+  }
+  var libcPath = Process.enumerateModulesSync().filter(function(m){return m.name.indexOf('libc.so')!=-1})[0].path;
+  Module.enumerateExportsSync(libcPath).forEach(function(ex){
+    if (ex.type === 'function' && isSocketFunction(ex.name)) {
+      Interceptor.attach(ex.address, {
+        onEnter: function (args) {
+          this.fd = args[0].toInt32();
+        },
+        onLeave: function (retval) {
+          var fd = this.fd;
+          if (Socket.type(fd) !== 'tcp')
+              return;
+          var address = Socket.peerAddress(fd);
+          if (address === null)
+            return;
+          console.log(fd, ex.name, address.ip + ':' + address.port);
+        }
+      }); 
+    }   
+  }); 
+});
+```
+```sh
+$ frida -Uf com.example.app -l script.js --no-pause
+[Android Model-X::com.example.app]-> 117 write 5.0.2.1:5242
+117 read 5.0.2.1:5242
+135 write 5.0.2.1:4244
+135 read 5.0.2.1:4244
+135 read 5.0.2.1:4244
+```
+
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
 
 #### Intercept Open
 
