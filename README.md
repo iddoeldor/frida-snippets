@@ -294,6 +294,11 @@ Process.enumerateModulesSync()
     });
 ```
 
+List modules & exports
+
+```js
+sudo frida Process --no-pause --eval 'var x={};Process.enumerateModulesSync().forEach(function(m){x[m.name] = Module.enumerateExportsSync(m.name)});x' -q | less +F
+```
 <details>
 <summary>Output example</summary>
 TODO
