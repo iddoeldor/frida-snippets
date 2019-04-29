@@ -335,13 +335,13 @@ Java.perform(function() {
   // search "215" @ https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
   var RegisterNatives = 215, FindClassIndex = 6;
   var getNativeAddress = function(idx) {
-    return Memory.readPointer(handlePointer.add(idx * pSize));
+    return handlePointer.add(idx * pSize).readPointer();
   }
   var jclassAddress2NameMap = {};
 
   Interceptor.attach(getNativeAddress(FindClassIndex), {
     onEnter: function(args) {
-      jclassAddress2NameMap[args[0]] = Memory.readCString(args[1]);
+      jclassAddress2NameMap[args[0]] = args[1].readCString();
     }
   });
 
@@ -360,12 +360,13 @@ Java.perform(function() {
          * } JNINativeMethod;
          */
         var structSize = pSize * 3; // JNINativeMethod contains 3 pointers
-        var sigPtr = Memory.readPointer(methodsPtr.add(i * structSize + pSize));
-        var fnPtrPtr = Memory.readPointer(methodsPtr.add(i * structSize + (pSize * 2)));
+        var sigPtr = methodsPtr.add(i * structSize + pSize).readPointer();
+        var fnPtrPtr = methodsPtr.add(i * structSize + (pSize * 2)).readPointer();
+
         console.log(JSON.stringify({
           class: jclassAddress2NameMap[args[0]],
-          method: Memory.readCString(Memory.readPointer(methodsPtr)), // const char* name
-          signature: Memory.readCString(sigPtr),
+          method: methodsPtr.readPointer().readCString(), // const char* name
+          signature: sigPtr.readCString(),
           // TODO Java bytecode signature parser { Z: 'boolean', B: 'byte', C: 'char', S: 'short', I: 'int', J: 'long', F: 'float', D: 'double', L: 'fully-qualified-class;', '[': 'array' }
           address: fnPtrPtr
         }));
