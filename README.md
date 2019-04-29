@@ -1405,7 +1405,7 @@ frida_script = """
   });
 """
 device = frida.get_usb_device()
-pid = device.spawn(["com.example"])
+pid = device.spawn(["com.example"]) # or .get_frontmost_application()
 session = device.attach(pid)
 script = session.create_script(frida_script)
 script.on('message', on_message)
