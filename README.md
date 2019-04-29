@@ -328,6 +328,56 @@ TODO
 [source](https://stackoverflow.com/questions/51811348/find-manually-registered-obfuscated-native-function-address)
 
 ```js
+Java.perform(function() {
+  var pSize = Process.pointerSize;
+  var env = Java.vm.getEnv();
+  var handlePointer = Memory.readPointer(env.handle);
+  // search "215" @ https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
+  var RegisterNatives = 215, FindClassIndex = 6;
+  var getNativeAddress = function(idx) {
+    return Memory.readPointer(handlePointer.add(idx * pSize));
+  }
+  var jclassAddress2NameMap = {};
+
+  Interceptor.attach(getNativeAddress(FindClassIndex), {
+    onEnter: function(args) {
+      jclassAddress2NameMap[args[0]] = Memory.readCString(args[1]);
+    }
+  });
+
+  Interceptor.attach(getNativeAddress(RegisterNatives), {
+    onEnter: function(args) {
+      //jint RegisterNatives(jclass clazz, const JNINativeMethod* methods, jint nMethods)
+      var methodsPtr = ptr(args[2]);
+      var methodCount = parseInt(args[3]);
+      for (var i = 0; i < methodCount; i++) {
+        /*
+         * https://android.googlesource.com/platform/libnativehelper/+/master/include_jni/jni.h#129
+         * typedef struct {
+         *    const char* name;
+         *    const char* signature;
+         *    void* fnPtr;
+         * } JNINativeMethod;
+         */
+        var structSize = pSize * 3; // JNINativeMethod contains 3 pointers
+        var sigPtr = Memory.readPointer(methodsPtr.add(i * structSize + pSize));
+        var fnPtrPtr = Memory.readPointer(methodsPtr.add(i * structSize + (pSize * 2)));
+        console.log(JSON.stringify({
+          class: jclassAddress2NameMap[args[0]],
+          method: Memory.readCString(Memory.readPointer(methodsPtr)), // const char* name
+          signature: Memory.readCString(sigPtr),
+          // TODO Java bytecode signature parser { Z: 'boolean', B: 'byte', C: 'char', S: 'short', I: 'int', J: 'long', F: 'float', D: 'double', L: 'fully-qualified-class;', '[': 'array' }
+          address: fnPtrPtr
+        }));
+      }
+    }
+  });
+
+});
+```
+
+@OldVersion
+```js
 var fIntercepted = false;
 
 function revealNativeMethods() {
@@ -396,7 +446,16 @@ Java.perform(revealNativeMethods);
 
 <details>
 <summary>Output example</summary>
-TODO
+
+```sh
+$ frida -Uf com.google.android.apps.photos --no-pause -l script.js
+```
+
+```sh
+{"class":"org/chromium/net/GURLUtils","method":"nativeGetOrigin","signature":"(Ljava/lang/String;)Ljava/lang/String;","address":"0x..da910"}
+..
+```
+
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
