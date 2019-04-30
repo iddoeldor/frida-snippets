@@ -10,7 +10,6 @@
 * [`Execute shell command`](#execute-shell-command)
 * [`List modules`](#list-modules)
 * [`Log SQLite query`](#log-sqlite-query)
-* [`Reveal manually registered native symbols`](#reveal-native-methods)
 * [`Log method arguments`](#log-method-arguments)
 * [`Intercept entire module`](#intercept-entire-module)
 
@@ -19,6 +18,7 @@
 <details>
 <summary>Android</summary>
 
+* [`Reveal manually registered native symbols`](#reveal-native-methods)
 * [`Enumerate loaded classes`](#enumerate-loaded-classes) 
 * [`Class description`](#class-description)
 * [`Turn WiFi off`](#turn-wifi-off)
@@ -329,53 +329,52 @@ TODO
 [source](https://stackoverflow.com/questions/51811348/find-manually-registered-obfuscated-native-function-address)
 
 ```js
-Java.perform(function() {
+var RevealNativeMethods = function() {
   var pSize = Process.pointerSize;
   var env = Java.vm.getEnv();
-  var handlePointer = Memory.readPointer(env.handle);
-  // search "215" @ https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
-  var RegisterNatives = 215, FindClassIndex = 6;
-  var getNativeAddress = function(idx) {
-    return handlePointer.add(idx * pSize).readPointer();
-  }
+  var RegisterNatives = 215, FindClassIndex = 6; // search "215" @ https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
   var jclassAddress2NameMap = {};
 
+  function getNativeAddress(idx) {
+    return env.handle.readPointer().add(idx * pSize).readPointer();
+  }
+  // intercepting FindClass to populate Map<address, jclass>
   Interceptor.attach(getNativeAddress(FindClassIndex), {
     onEnter: function(args) {
       jclassAddress2NameMap[args[0]] = args[1].readCString();
     }
   });
 
+  // https://android.googlesource.com/platform/libnativehelper/+/master/include_jni/jni.h#977
   Interceptor.attach(getNativeAddress(RegisterNatives), {
     onEnter: function(args) {
-      //jint RegisterNatives(jclass clazz, const JNINativeMethod* methods, jint nMethods)
       var methodsPtr = ptr(args[2]);
-      var methodCount = parseInt(args[3]);
-      for (var i = 0; i < methodCount; i++) {
+      for (var i = 0, nMethods = parseInt(args[3]); i < nMethods; i++) {
         /*
-         * https://android.googlesource.com/platform/libnativehelper/+/master/include_jni/jni.h#129
-         * typedef struct {
-         *    const char* name;
-         *    const char* signature;
-         *    void* fnPtr;
-         * } JNINativeMethod;
-         */
-        var structSize = pSize * 3; // JNINativeMethod contains 3 pointers
+          https://android.googlesource.com/platform/libnativehelper/+/master/include_jni/jni.h#129
+          typedef struct {
+             const char* name;
+             const char* signature;
+             void* fnPtr;
+          } JNINativeMethod;
+        */
+        var structSize = pSize * 3; // = sizeof(JNINativeMethod)
         var sigPtr = methodsPtr.add(i * structSize + pSize).readPointer();
         var fnPtrPtr = methodsPtr.add(i * structSize + (pSize * 2)).readPointer();
 
-        console.log(JSON.stringify({
+        console.log('\x1b[3' + '6;01' + 'm', JSON.stringify({
+          module: DebugSymbol.fromAddress(fnPtrPtr)['moduleName'], // https://www.frida.re/docs/javascript-api/#debugsymbol
           class: jclassAddress2NameMap[args[0]],
           method: methodsPtr.readPointer().readCString(), // const char* name
-          signature: sigPtr.readCString(),
-          // TODO Java bytecode signature parser { Z: 'boolean', B: 'byte', C: 'char', S: 'short', I: 'int', J: 'long', F: 'float', D: 'double', L: 'fully-qualified-class;', '[': 'array' }
+          signature: sigPtr.readCString(), // TODO Java bytecode signature parser { Z: 'boolean', B: 'byte', C: 'char', S: 'short', I: 'int', J: 'long', F: 'float', D: 'double', L: 'fully-qualified-class;', '[': 'array' }
           address: fnPtrPtr
-        }));
+        }), '\x1b[39;49;00m');
       }
     }
   });
+}
 
-});
+Java.perform(RevealNativeMethods);
 ```
 
 @OldVersion
