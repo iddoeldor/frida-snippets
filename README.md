@@ -37,6 +37,7 @@
 * [`Get Android ID`](#get-android-id)
 * [`Bypass FLAG_SECURE`](#bypass-flag_secure)
 * [`Shared Preferences update`](#shared-preferences-update)
+* File system access hook `$ frida --codeshare FrenchYeti/android-file-system-access-hook -f com.example.app --no-pause`
 </details>
 
 <details>
