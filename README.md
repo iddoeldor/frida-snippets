@@ -37,6 +37,7 @@
 * [`Get Android ID`](#get-android-id)
 * [`Bypass FLAG_SECURE`](#bypass-flag_secure)
 * [`Shared Preferences update`](#shared-preferences-update)
+* [`Hook all method overloads`](#hook-overloads)
 * File system access hook `$ frida --codeshare FrenchYeti/android-file-system-access-hook -f com.example.app --no-pause`
 </details>
 
@@ -1176,6 +1177,52 @@ function notifyNewSharedPreference() {
     return this.putString(k, v);
   }
 }
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
+
+#### Hook overloads
+
+```javascript
+function hookOverloads(className, func) {
+  var clazz = Java.use(className);
+  var overloads = clazz[func].overloads;
+  for (var i in overloads) {
+    if (overloads[i].hasOwnProperty('argumentTypes')) {
+      var parameters = [];
+
+      for (var j in overloads[i].argumentTypes)
+        parameters.push(overloads[i].argumentTypes[j].className);
+
+      var args = [];
+      for (var i = 0; i < parameters.length; i++)
+        args.push('arg_' + i);
+
+      var script = "var ret = this.__FUNCNAME__(__SEPARATED_ARG_NAMES__) || '';\n"
+        + "console.log('__CLASSNAME__.__FUNCNAME__(' + __SEPARATED_ARG_NAMES__ + ') : ' + ret);\n"
+        + "return ret;"
+
+      script = script.replace(/__FUNCNAME__/g, func)
+        .replace(/__SEPARATED_ARG_NAMES__/g, args.join(', '))
+        .replace(/__CLASSNAME__/g, className)
+        .replace(/\+  \+/g, '+');
+
+      args.push(script);
+      clazz[func].overload.apply(this, parameters).implementation = Function.apply(null, args);
+    }
+  }
+}
+
+Java.perform(function() {
+  hookOverloads('java.lang.StringBuilder', '$init');
+})
 ```
 
 <details>
