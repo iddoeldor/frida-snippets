@@ -1198,21 +1198,18 @@ function hookOverloads(className, func) {
     if (overloads[i].hasOwnProperty('argumentTypes')) {
       var parameters = [];
 
-      for (var j in overloads[i].argumentTypes)
-        parameters.push(overloads[i].argumentTypes[j].className);
+      var curArgumentTypes = overloads[i].argumentTypes, args = [], argLog = '[';
+      for (var j in curArgumentTypes) {
+        var cName = curArgumentTypes[j].className;
+        parameters.push(cName);
+        argLog += "'(" + cName + ") ' + v" + j + ",";
+        args.push('v' + j);
+      }
+      argLog += ']';
 
-      var args = [];
-      for (var i = 0; i < parameters.length; i++)
-        args.push('arg_' + i);
-
-      var script = "var ret = this.__FUNCNAME__(__SEPARATED_ARG_NAMES__) || '';\n"
-        + "console.log('__CLASSNAME__.__FUNCNAME__(' + __SEPARATED_ARG_NAMES__ + ') : ' + ret);\n"
+      var script = "var ret = this." + func + '(' + args.join(',') + ") || '';\n"
+        + "console.log(JSON.stringify(" + argLog + "));\n"
         + "return ret;"
-
-      script = script.replace(/__FUNCNAME__/g, func)
-        .replace(/__SEPARATED_ARG_NAMES__/g, args.join(', '))
-        .replace(/__CLASSNAME__/g, className)
-        .replace(/\+  \+/g, '+');
 
       args.push(script);
       clazz[func].overload.apply(this, parameters).implementation = Function.apply(null, args);
