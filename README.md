@@ -1572,6 +1572,7 @@ UIDevice.$ownMethods
   .forEach(function(method) { 
     console.log(method, ':', UIDevice[method]())
   })
+console.log('executablePath =', ObjC.classes.NSBundle.mainBundle().executablePath().toString());
 
 ```
 
