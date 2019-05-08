@@ -44,7 +44,7 @@
 <details>
 <summary>iOS</summary>
 
-*[`OS Log`](#os-log)
+* [`OS Log`](#os-log)
 * [`iOS alert box`](#ios-alert-box) 
 * [`File access`](#file-access)
 * [`Observe class`](#observe-class)
