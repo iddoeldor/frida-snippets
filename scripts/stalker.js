@@ -1,4 +1,3 @@
-var sendText = ObjC.classes.PhoneService['- sendText:to:withSeq:'];
 Interceptor.attach(ObjC.classes.MyClass['- myMethod:param1'].implementation, {
   onEnter: function (args) {
     console.warn(JSON.stringify({
