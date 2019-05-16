@@ -12,6 +12,15 @@ Interceptor.attach(ObjC.classes.MyClass['- myMethod:param1'].implementation, {
       events: {
         call: true
       },
+      /*
+      onCallSummary: function (summary) {
+        Object.keys(summary).forEach(s => {
+          var sym = DebugSymbol.fromAddress(ptr(s));
+          if (sym.moduleName == 'Viber')
+            console.log(summary[s], sym.name);
+        })
+      }
+      */
       transform: function (iterator) {
         var instruction;
         while ((instruction = iterator.next()) !== null) {
