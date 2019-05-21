@@ -4,6 +4,8 @@
 
 <details>
 <summary>Native</summary>
+
+* [`Watchpoint`](#watchpoint)
 * [`Socket activity`](#socket-activity)
 * [`Intercept open`](#intercept-open)
 * [`Execute shell command`](#execute-shell-command)
@@ -1715,17 +1717,4 @@ console.log('executablePath =', ObjC.classes.NSBundle.mainBundle().executablePat
 #### TODOs 
 - Add GIFs & examples
 - Add links to /scripts
-- Extend universal SSL unpinning for [ios](https://codeshare.frida.re/@dki/ios10-ssl-bypass/) [andoid 1](https://github.com/Fuzion24/JustTrustMe/blob/master/app/src/main/java/just/trust/me/Main.java) [android 2](https://codeshare.frida.re/@pcipolloni/universal-android-ssl-pinning-bypass-with-frida/)
-
-- Blog posts:
-* [Fuzzing Universal links iOS](#https://grepharder.github.io/blog/0x03_learning_about_universal_links_and_fuzzing_url_schemes_on_ios_with_frida.html)
-
-- References:
-* https://github.com/mwrlabs/needle/blob/master/needle/modules/hooking/frida/script_touch-id-bypass.py
-* https://github.com/as0ler/frida-scripts/blob/master/NSFileManager_Hooker.py
-* https://techblog.mediaservice.net/2017/09/tracing-arbitrary-methods-and-function-calls-on-android-and-ios/
-* https://zhiwei.li/text/2016/02/01/%E7%BC%96%E8%AF%91frida/
-* https://kov4l3nko.github.io/blog/2018-05-27-sll-pinning-hook-sectrustevaluate/
-* https://www.codemetrix.net/hacking-android-apps-with-frida-1/
-* https://awakened1712.github.io/hacking/hacking-frida/
-* https://techblog.mediaservice.net/2018/11/universal-android-ssl-pinning-bypass-2/ # can be improved https://android.googlesource.com/platform/external/conscrypt/+/idea133-weekly-release/src/main/java/org/conscrypt/TrustManagerImpl.java
+- Extend universal SSL unpinning for [ios](https://codeshare.frida.re/@dki/ios10-ssl-bypass/) [andoid 1](https://github.com/Fuzion24/JustTrustMe/blob/master/app/src/main/java/just/trust/me/Main.java) [android 
