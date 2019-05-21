@@ -74,14 +74,19 @@ For this example I'm intercepting `funcPtr` & I want to know who read/write to `
 
 ```js
 Process.setExceptionHandler(function(exp) {
-  console.error('[!]', JSON.stringify(exp));
+  console.warn(JSON.stringify(exp, null, 2));
+  // can implement a switch case on exp.memory.operation, if read set only 'r--' if write '-w-' etc..
+  Memory.protect(exp.memory.address, Process.pointerSize, 'rw-');
   return true;
 });
 
 Interceptor.attach(funcPtr, {
   onEnter: function (args) {
-    console.log('onEnter', this.context.x2);
-    Memory.protect(this.context.x2, Process.pointerSize, '---');
+    console.log('onEnter', JSON.stringify({
+      x2: this.context.x2,
+      mprotect_ret: Memory.protect(this.context.x2, 2, '---'),
+      errno: this.errno
+    }, null, 2));
   },
   onLeave: function (retval) {
     console.log('onLeave');
@@ -91,7 +96,61 @@ Interceptor.attach(funcPtr, {
 
 <details>
 <summary>Output example</summary>
-TODO
+
+```
+[iOS Device::com.app]-> onEnter {
+  "x2": "0x1c145c6e0",
+  "mprotect_ret": true,
+  "errno": 2
+}
+{
+  "type": "access-violation",
+  "address": "0x1853b0198",
+  "memory": {
+    "operation": "read",
+    "address": "0x1c145c6e0"
+  },
+  "context": {
+    "lr": "0x100453358",
+    "fp": "0x16fb2e860",
+    "x28": "0x0",
+    "x27": "0x0",
+    "x26": "0x104312600",
+    "x25": "0x0",
+    "x24": "0x0",
+    "x23": "0x0",
+    "x22": "0x0",
+    "x21": "0xb000000422bbda03",
+    "x20": "0x1c4a22560",
+    "x19": "0xb000000422bbda03",
+    "x18": "0x0",
+    "x17": "0x100d25290",
+    "x16": "0x1853b0190",
+    "x15": "0x0",
+    "x14": "0x5",
+    "x13": "0xe5a1c4119597",
+    "x12": "0x10e80ca30",
+    "x11": "0x180000003f",
+    "x10": "0x10e80ca00",
+    "x9": "0x1020ad7c3",
+    "x8": "0x0",
+    "x7": "0x0",
+    "x6": "0x0",
+    "x5": "0x0",
+    "x4": "0xb000000422bbda03",
+    "x3": "0x1c4a22560",
+    "x2": "0x1c145c6e0",
+    "x1": "0x1020ad7c3",
+    "x0": "0x1c145c6e0",
+    "sp": "0x16fb2e790",
+    "pc": "0x1853b0198"
+  },
+  "nativeContext": "0x16fc42b24"
+}
+onLeave
+```
+
+
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
