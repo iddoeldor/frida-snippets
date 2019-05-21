@@ -4,7 +4,6 @@
 
 <details>
 <summary>Native</summary>
-* [`Watchpoint`](#watchpoint)
 * [`Socket activity`](#socket-activity)
 * [`Intercept open`](#intercept-open)
 * [`Execute shell command`](#execute-shell-command)
@@ -90,11 +89,7 @@ Interceptor.attach(funcPtr, {
 
 <details>
 <summary>Output example</summary>
-
-```
-[!] {"type":"access-violation","address":"0x1853b0198","memory":{"operation":"read","address":"0x1c4c5d5b0"},"context":{"lr":"0x10086f358","fp":"0x16f712860","x28":"0x0","x27":"0x0","x26":"0x104794800","x25":"0x0","x24":"0x0","x23":"0x0","x22":"0x0","x21":"0xb000000406930ab3","x20":"0x1c0c258e0","x19":"0xb000000406930ab3","x18":"0x0","x17":"0x1011412e8","x16":"0x1853b0190","x15":"0x5b1dd0105b1ddc0","x14":"0x0","x13":"0x1","x12":"0x5b1dc00","x11":"0x5b1dd01","x10":"0x5b1dd0105b1dd80","x9":"0x0","x8":"0x0","x7":"0x0","x6":"0x0","x5":"0x0","x4":"0xb000000406930ab3","x3":"0x1c0c258e0","x2":"0x1c4c5d5b0","x1":"0x1024c97c3","x0":"0x1c4c5d5b0","sp":"0x16f712790","pc":"0x1853b0198"},"nativeContext":"0x16f826b24"}
-```
-
+TODO
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
