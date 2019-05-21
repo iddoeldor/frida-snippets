@@ -5,7 +5,7 @@
 <details>
 <summary>Native</summary>
 
-* [`Watchpoint`](#watchpoint)
+* [`One time watchpoint`](#one-time-watchpoint)
 * [`Socket activity`](#socket-activity)
 * [`Intercept open`](#intercept-open)
 * [`Execute shell command`](#execute-shell-command)
@@ -68,7 +68,7 @@
 <hr />
 
 
-#### Watchpoint
+#### One time watchpoint
 
 For this example I'm intercepting `funcPtr` & I want to know who read/write to `x2` so I remove permissions w/ `mprotect`.
 
@@ -77,6 +77,8 @@ Process.setExceptionHandler(function(exp) {
   console.warn(JSON.stringify(exp, null, 2));
   // can implement a switch case on exp.memory.operation, if read set only 'r--' if write '-w-' etc..
   Memory.protect(exp.memory.address, Process.pointerSize, 'rw-');
+  // can also use `new NativeFunction(Module.findExportByName(null, 'mprotect'), 'int', ['pointer', 'uint', 'int'])(parseInt(this.context.x2), 2, 0)`
+
   return true;
 });
 
