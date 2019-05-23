@@ -65,6 +65,19 @@
 
 </details>
 
+
+<details>
+<summary>Vim snippets</summary>	
+
+Add to `~/.vimrc`
+You write `fridaintercept` and expand with `<Space>`
+
+```
+:iabbrev fridaintercept Interceptor.attach(ptr, {<CR><Tab>onEnter: function(args) {<CR><CR>},<CR>onLeave: function(retval) {<CR><CR>}<CR><BS>})
+```
+
+</details>
+
 <hr />
 
 
