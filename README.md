@@ -77,7 +77,8 @@ Expand by writing `key` and `<Space>`
 
 ```
 ab fridaintercept Interceptor.attach(ptr, {<CR><Tab>onEnter: function(args) {<CR><CR>},<CR>onLeave: function(retval) {<CR><CR>}<CR><BS>})
-ab fridabacktrace console.warn(Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n'));<ESC>F(4;
+ab fridabacktrace console.warn(Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n'));<ESC>F(3;
+ab fridadescribe console.log(Object.getOwnPropertyNames(Java.use('$').__proto__).join('\n\t'))<Esc>F$
 ```
 
 </details>
