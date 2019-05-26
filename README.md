@@ -69,13 +69,15 @@
 <details>
 <summary>Vim snippets</summary>	
 
+To list abbreviations `:ab`
 
-Expand by writing `fridaintercept` and `<Space>`
+Expand by writing `key` and `<Space>`
+
 * Add to `~/.vimrc`
 
 ```
-iabbrev fridaintercept Interceptor.attach(ptr, {<CR><Tab>onEnter: function(args) {<CR><CR>},<CR>onLeave: function(retval) {<CR><CR>}<CR><BS>})
-iabbrev fridabacktrace console.warn(Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n'));<ESC>F(4;
+ab fridaintercept Interceptor.attach(ptr, {<CR><Tab>onEnter: function(args) {<CR><CR>},<CR>onLeave: function(retval) {<CR><CR>}<CR><BS>})
+ab fridabacktrace console.warn(Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n'));<ESC>F(4;
 ```
 
 </details>
