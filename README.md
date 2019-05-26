@@ -74,7 +74,8 @@ Expand by writing `fridaintercept` and `<Space>`
 * Add to `~/.vimrc`
 
 ```
-:iabbrev fridaintercept Interceptor.attach(ptr, {<CR><Tab>onEnter: function(args) {<CR><CR>},<CR>onLeave: function(retval) {<CR><CR>}<CR><BS>})
+iabbrev fridaintercept Interceptor.attach(ptr, {<CR><Tab>onEnter: function(args) {<CR><CR>},<CR>onLeave: function(retval) {<CR><CR>}<CR><BS>})
+iabbrev fridabacktrace console.warn(Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n'));<ESC>F(4;
 ```
 
 </details>
