@@ -180,75 +180,30 @@ onLeave
 #### Socket activity
 
 ```js
-Module.enumerateExportsSync(
-  // finding socket module path
-  Process.enumerateModulesSync().filter(function(m){
-    return m.name === { linux: 'libc.so', darwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
-  })[0].path
-).forEach(function(ex){
-  if ( 
-    ex.type === 'function' &&·
-    // if function contains the prefix of one of the socket related functions
-    ['connect', 'recv', 'send', 'read', 'write'].some(function(prefix) { 
-      return ex.name.indexOf(prefix) === 0 
-    })
-  ) { 
-    Interceptor.attach(ex.address, { 
-      onEnter: function (args) { 
-        this.fd = args[0].toInt32();
-      },
-      onLeave: function (retval) { 
-        var fd = this.fd;
+Process
+  .getModuleByName({ linux: 'libc.so', darwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform])
+  .enumerateExports().filter(ex => ex.type === 'function' && ['connect', 'recv', 'send', 'read', 'write'].some(prefix => ex.name.indexOf(prefix) === 0))
+  .forEach(ex => {
+    Interceptor.attach(ex.address, {
+      onEnter: function (args) {
+        var fd = args[0].toInt32();
         if (Socket.type(fd) !== 'tcp')
-            return;
+          return;
         var address = Socket.peerAddress(fd);
         if (address === null)
           return;
         console.log(fd, ex.name, address.ip + ':' + address.port);
-      } 
-    });
-  } 
-});
+      }
+    })
+  })
 ```
 
 <details>
 <summary>Output example</summary>
 	
 Android example
-```
-Java.perform(function(){
-Module.enumerateExportsSync(
-  // finding socket module path
-  Process.enumerateModulesSync().filter(function(m){
-    return m.name === { linux: 'libc.so', darwin: 'libSystem.B.dylib', windows: 'ws2_32.dll' }[Process.platform]
-  })[0].path
-).forEach(function(ex){
-  if ( 
-    ex.type === 'function' &&·
-    // if function contains the prefix of one of the socket related functions
-    ['connect', 'recv', 'send', 'read', 'write'].some(function(prefix) { 
-      return ex.name.indexOf(prefix) === 0 
-    })
-  ) { 
-    Interceptor.attach(ex.address, { 
-      onEnter: function (args) { 
-        this.fd = args[0].toInt32();
-      },
-      onLeave: function (retval) { 
-        var fd = this.fd;
-        if (Socket.type(fd) !== 'tcp')
-            return;
-        var address = Socket.peerAddress(fd);
-        if (address === null)
-          return;
-        console.log(fd, ex.name, address.ip + ':' + address.port);
-      } 
-    });
-  } 
-});
-});
-```
 ```sh
+# wrap the script above inside Java.perform
 $ frida -Uf com.example.app -l script.js --no-pause
 [Android Model-X::com.example.app]-> 117 write 5.0.2.1:5242
 117 read 5.0.2.1:5242
