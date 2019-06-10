@@ -64,6 +64,24 @@
 ![HAHAHA. No.](https://i.kym-cdn.com/photos/images/original/000/551/854/06f.jpg)
 
 </details>
+<details>
+	<summary>Sublime snippets</summary>
+	
+	{
+	    "scope": "source.js",
+	    "completions": [
+		{"trigger": "fridainterceptor", "contents": "Interceptor.attach(\n    ptr,\n    {\n        onEnter:function(args) {\n\n        },\n        onLeave: function(retval) {\n\n        }\n    }\n)"},
+		{"trigger": "fridaperform", "contents": "function main(){\n    console.log('main()');\n}\n\nconsole.log('script loaded');\nJava.perform(main);"},
+		{"trigger": "fridause", "contents": "var kls = Java.use('kls');"},
+		{"trigger": "fridahex", "contents": "hexdump(\n    ptr,\n    {\n         offset: 0,\n         length: ptr_size\n     }\n);" },
+		{"trigger": "fridabacktrace", "contents": "console.log('called from:\\n' +\n        Thread.backtrace(this.context, Backtracer.ACCURATE)\n        .map(DebugSymbol.fromAddress).join('\\n') + '\\n'\n);"},
+		{"trigger": "fridamods", "contents": "var mods = Process.enumerateModules().filter(function(mod){\n    return mod.name.includes(\"<name>\");\n});"},
+		{"trigger": "fridaexport", "contents": "Module.findExportByName(null, \"<export_name>\");"},
+		{"trigger": "fridabase", "contents": "Module.findBaseAddress(name);"},
+		{"trigger": "fridaoverload", "contents": "kls.method_name.overload().implementation=function(){}"}
+	    ]
+	}
+</details>
 
 
 <details>
