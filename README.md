@@ -13,6 +13,8 @@
 * [`Log SQLite query`](#log-sqlite-query)
 * [`Log method arguments`](#log-method-arguments)
 * [`Intercept entire module`](#intercept-entire-module)
+* [`Dump memory segments`](#dump-memory-segments)
+
 
 </details>
 
@@ -1687,6 +1689,32 @@ TODO
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+
+
+#### Dump memory segments
+
+```js
+Process.enumerateRanges('rw-', {
+	onMatch: function (instance) {
+		console.log(`base=${instance.base} size=${instance.size} prot=${instance.protection}`);
+		var f = new File('/sdcard/' + instance.base + '_dump', 'wb');
+		f.write(Memory.readByteArray(instance.base, instance.size));
+		f.close();
+	},
+	onComplete: function () {}
+});
+```
+
+<details>
+<summary>Output example</summary>
+TODO	
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
+
 
 
 #### Device properties
