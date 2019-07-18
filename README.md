@@ -38,6 +38,7 @@
 * [`Trace class`](#trace-class)
 * [`Hooking Unity3d`](https://github.com/iddoeldor/mplus)
 * [`Get Android ID`](#get-android-id)
+* [`Change location`](#change-location)
 * [`Bypass FLAG_SECURE`](#bypass-flag_secure)
 * [`Shared Preferences update`](#shared-preferences-update)
 * [`Hook all method overloads`](#hook-overloads)
@@ -1224,6 +1225,30 @@ https://stackoverflow.com/a/54818023/2655092
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+
+#### Change location
+
+
+```js
+Java.perform(() => {
+	var Location = Java.use('android.location.Location');
+	Location.getLatitude.implementation = function() {
+		return LATITUDE;
+	}
+	Location.getLongitude.implementation = function() {
+		return LONGITUDE;
+	}
+})
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
 
 
 #### Bypass FLAG_SECURE
