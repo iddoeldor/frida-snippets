@@ -1824,13 +1824,16 @@ console.log('executablePath =', ObjC.classes.NSBundle.mainBundle().executablePat
 ```js
 function screenshot() {
   ObjC.schedule(ObjC.mainQueue, function() {
+    var getNativeFunction = function (ex, retVal, args) {
+      return new NativeFunction(Module.findExportByName('UIKit', ex), retVal, args);
+    };
     var api = {
       UIWindow: ObjC.classes.UIWindow,
-        NSThread: ObjC.classes.NSThread,
-        UIGraphicsBeginImageContextWithOptions: new NativeFunction(Module.findExportByName('UIKit', 'UIGraphicsBeginImageContextWithOptions'), 'void', [['double', 'double'], 'bool', 'double']),
-        UIGraphicsEndImageContext: new NativeFunction(Module.findExportByName('UIKit', 'UIGraphicsEndImageContext'), 'void', []),
-        UIGraphicsGetImageFromCurrentImageContext: new NativeFunction(Module.findExportByName('UIKit', 'UIGraphicsGetImageFromCurrentImageContext'), 'pointer', []),
-        UIImagePNGRepresentation: new NativeFunction(Module.findExportByName('UIKit', 'UIImagePNGRepresentation'), 'pointer', ['pointer'])
+      UIGraphicsBeginImageContextWithOptions: getNativeFunction('UIGraphicsBeginImageContextWithOptions', 'void', [['double', 'double'], 'bool', 'double']),
+      UIGraphicsBeginImageContextWithOptions: getNativeFunction('UIGraphicsBeginImageContextWithOptions', 'void', [['double', 'double'], 'bool', 'double']),
+      UIGraphicsEndImageContext: getNativeFunction('UIGraphicsEndImageContext', 'void', []),
+      UIGraphicsGetImageFromCurrentImageContext: getNativeFunction('UIGraphicsGetImageFromCurrentImageContext', 'pointer', []),
+      UIImagePNGRepresentation: getNativeFunction('UIImagePNGRepresentation', 'pointer', ['pointer'])
     };
     var view = api.UIWindow.keyWindow();
     var bounds = view.bounds();
