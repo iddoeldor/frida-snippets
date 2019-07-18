@@ -58,6 +58,7 @@
 * [`Class hierarchy`](#class-hierarchy) 
 * [`Hook refelaction`](#hook-refelaction)
 * [`Device properties`](#device-properties)
+* [`Take screenshot`](#take-screenshot)
 
 </details>
 
@@ -1816,6 +1817,60 @@ console.log('executablePath =', ObjC.classes.NSBundle.mainBundle().executablePat
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+
+#### Take screenshot
+
+```js
+function screenshot() {
+  ObjC.schedule(ObjC.mainQueue, function() {
+    var api = {
+      UIWindow: ObjC.classes.UIWindow,
+        NSThread: ObjC.classes.NSThread,
+        UIGraphicsBeginImageContextWithOptions: new NativeFunction(Module.findExportByName('UIKit', 'UIGraphicsBeginImageContextWithOptions'), 'void', [['double', 'double'], 'bool', 'double']),
+        UIGraphicsEndImageContext: new NativeFunction(Module.findExportByName('UIKit', 'UIGraphicsEndImageContext'), 'void', []),
+        UIGraphicsGetImageFromCurrentImageContext: new NativeFunction(Module.findExportByName('UIKit', 'UIGraphicsGetImageFromCurrentImageContext'), 'pointer', []),
+        UIImagePNGRepresentation: new NativeFunction(Module.findExportByName('UIKit', 'UIImagePNGRepresentation'), 'pointer', ['pointer'])
+    };
+    var view = api.UIWindow.keyWindow();
+    var bounds = view.bounds();
+    var size = bounds[1];
+    api.UIGraphicsBeginImageContextWithOptions(size, 0, 0);
+    view.drawViewHierarchyInRect_afterScreenUpdates_(bounds, true);
+
+    var image = api.UIGraphicsGetImageFromCurrentImageContext();
+    api.UIGraphicsEndImageContext();
+
+    var png = new ObjC.Object(api.UIImagePNGRepresentation(image));
+    send('screenshot', Memory.readByteArray(png.bytes(), png.length()));
+  });
+}
+
+rpc.exports = {
+  takescreenshot: screenshot
+}
+```
+
+```py
+...
+def save_screenshot(d):
+    f = open('/tmp/screenshot.png', 'wb')
+    f.write(d)
+    f.close()
+
+def on_message(msg, data):
+    save_screenshot(data)
+ 
+ script.exports.takescreenshot()
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
 
 
 #### TODOs 
