@@ -14,6 +14,7 @@
 * [`Log method arguments`](#log-method-arguments)
 * [`Intercept entire module`](#intercept-entire-module)
 * [`Dump memory segments`](#dump-memory-segments)
+* [`Memory scan`](#memory-scan)
 
 
 </details>
@@ -1741,6 +1742,28 @@ TODO
 
 
 
+#### Memory scan
+
+```js
+var m = Process.findModuleByName(moudleName);
+var pattern = 'RANDOM'.split('').map(letter => letter.charCodeAt(0).toString(16)).join(' ');
+var res = Memory.scanSync(m.base, m.size, pattern);
+console.log(`pattern [ ${pattern} ] ${JSON.stringify(m, null, 2)}\n${JSON.stringify(res)}`);
+```
+
+<details>
+<summary>Output example</summary>
+pattern [ 52 41 4e 44 4f 4d ] {
+  "name": "Test",
+  "base": "0x1048fc000",
+  "size": 147000,
+  "path": "/var/containers/Bundle/Application/CD74EB00-9D90-4600-BF5D-F6E5E0CDF878/Test.app/Test"
+}
+[{"address":"0x10491f211","size":6}]
+
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
 
 
 #### Device properties
