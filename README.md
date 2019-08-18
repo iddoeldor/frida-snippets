@@ -1951,6 +1951,28 @@ def on_message(msg, data):
     save_screenshot(data)
  
  script.exports.takescreenshot()
+ 
+ # open screenshot & invoke rpc via input 
+ # <Ctrl+C> will take screenshot, open it with eog & wait for export function name to invoke via input
+ def on_message(msg, data):
+    if 'payload' in msg:
+        if msg['payload'] == 'screenshot':
+            i = '/tmp/screenshot.png'
+            f = open(i, 'wb')
+            f.write(data)
+            f.close()
+            subprocess.call(['eog', i])
+	   
+ while True:
+    try:
+        time.sleep(1)
+    except KeyboardInterrupt:
+        script.exports.takescreenshot()
+        try:
+            getattr(script.exports, input())()
+        except (KeyboardInterrupt, frida.core.RPCException) as e:
+            print('[!]', e)
+
 ```
 
 <details>
