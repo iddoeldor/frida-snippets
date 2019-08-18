@@ -111,12 +111,11 @@ ab fridadescribe console.log(Object.getOwnPropertyNames(Java.use('$').__proto__)
 
 #### One time watchpoint
 
-For this example I'm intercepting `funcPtr` & I want to know who read/write to `x2` so I remove permissions w/ `mprotect`.
+Intercept `funcPtr` & log who read/write to `x2` via removing permissions w/ `mprotect`.
 
 ```js
 Process.setExceptionHandler(function(exp) {
   console.warn(JSON.stringify(Object.assign(exp, { _lr: DebugSymbol.fromAddress(exp.context.lr), _pc: DebugSymbol.fromAddress(exp.context.pc) }), null, 2));
-  // can implement a switch case on exp.memory.operation, if read set only 'r--' if write '-w-' etc..
   Memory.protect(exp.memory.address, Process.pointerSize, 'rw-');
   // can also use `new NativeFunction(Module.findExportByName(null, 'mprotect'), 'int', ['pointer', 'uint', 'int'])(parseInt(this.context.x2), 2, 0)`
   return true; // goto PC 
