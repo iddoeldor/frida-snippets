@@ -1774,6 +1774,11 @@ pattern [ 52 41 4e 44 4f 4d ] {
 #### Stalker
 
 ```js
+  var _module = Process.findModuleByName('myModule');
+  var base = ptr(_module.base);
+  var startTraceOffset = 0xabcd1234, numInstructionsToTrace = 50;
+  var startTrace = base.add(startTraceOffset), endTrace = startTrace.add(4 * (numInstructionsToTrace - 1));
+  
   Interceptor.attach(ObjC.classes.CustomClass['- func'].implementation, {
     onEnter: function (args) {
       var tid = Process.getCurrentThreadId();
@@ -1783,8 +1788,25 @@ pattern [ 52 41 4e 44 4f 4d ] {
         transform: function (iterator) {
           var instruction;
           while ((instruction = iterator.next()) !== null) {
-            iterator.keep();
-            console.log('\t' + instruction.address, instruction.toString()); // to get offset > save module base & use .sub()
+            // condition to putCallout
+	    if (instruction.address <= endTrace && instruction.address >= startTrace) {     
+	      // print instruction & registers values
+              iter.putCallout(function(context) {
+                var offset = ptr(context.pc).sub(base);
+                var inst = Instruction.parse(context.pc).toString();
+                var modified_inst = inst;
+                inst.replace(/,/g, '').split(' ').forEach(op => {
+                  if (op.startsWith('x'))
+                    modified_inst = modified_inst.replace(op, context[op]);
+                  else if (op.startsWith('w'))
+                    modified_inst = modified_inst.replace(op, context[op.replace('w', 'x')]);
+                });
+                modified_inst = '\x1b[35;01m' + modified_inst + '\x1b[0m';
+                console.log(`x8=${context.x8} x25=${context.x25} x0=${context.x0} x21=${context.x21}`)
+                console.log(`${offset} ${inst} # ${modified_inst}`);
+              });
+	    }
+	    iterator.keep();
           }
         }
       })
@@ -1800,7 +1822,7 @@ pattern [ 52 41 4e 44 4f 4d ] {
 
 <details>
 <summary>Output example</summary>
-TODO
+mul x5, x2, x21 # mul 0x3, 0x4, 0x5
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
