@@ -15,7 +15,7 @@
 * [`Intercept entire module`](#intercept-entire-module)
 * [`Dump memory segments`](#dump-memory-segments)
 * [`Memory scan`](#memory-scan)
-
+* [`Stalker`](#stalker)
 
 </details>
 
@@ -1764,6 +1764,47 @@ pattern [ 52 41 4e 44 4f 4d ] {
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+
+
+
+
+
+
+#### Stalker
+
+```js
+  Interceptor.attach(ObjC.classes.CustomClass['- func'].implementation, {
+    onEnter: function (args) {
+      var tid = Process.getCurrentThreadId();
+      this.tid = tid;
+      console.warn(`onEnter [ ${tid} ]`);     
+      Stalker.follow(tid, {
+        transform: function (iterator) {
+          var instruction;
+          while ((instruction = iterator.next()) !== null) {
+            iterator.keep();
+            console.log('\t' + instruction.address, instruction.toString()); // to get offset > save module base & use .sub()
+          }
+        }
+      })
+    },  
+    onLeave: function (retval) {
+      console.log(`onLeave [ ${this.tid} ]`);
+      // cleanup
+      Stalker.unfollow(this.tid);
+      Stalker.garbageCollect();
+    }   
+  })  
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
 
 
 #### Device properties
