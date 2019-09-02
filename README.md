@@ -266,8 +266,7 @@ var fds = {};
 Interceptor.attach(Module.findExportByName(null, 'open'), {
   onEnter: function (args) {
     var fname = args[0].readCString();
-    if (fname.endsWith('.jar')) {
-      console.log('open: ' + fname);
+    if (fname.endsWith('kdc')) {
       this.flag = true;
       this.fname = fname;
     }
@@ -275,18 +274,17 @@ Interceptor.attach(Module.findExportByName(null, 'open'), {
   onLeave: function (retval) {
     if (this.flag) {
       fds[retval] = this.fname;
-      console.warn(retval);
     }
   }
 });
-Interceptor.attach(Module.findExportByName(null, 'read'), {
-  onEnter: function (args) {
-    var fd = args[0];
-    if (fd in fds) {
-      console.log('read: ' + fds[fd]);
-      console.warn(Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n'));
+['read', 'pread', 'readv'].forEach(fnc => {
+  Interceptor.attach(Module.findExportByName(null, fnc), {
+    onEnter: function (args) {
+      var fd = args[0];
+      if (fd in fds)
+        console.log(`${fnc}: ${fds[fd]}\n\t${Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n\t')}`);
     }
-  }
+  });
 });
 ```
 
