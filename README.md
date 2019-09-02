@@ -262,7 +262,7 @@ Interceptor.attach(Module.findExportByName("/system/lib/libc.so", "open"), {
 
 
 ```js
-var fds = {};
+var fds = {}; // for f in /proc/`pidof $APP`/fd/*; do echo $f': 'readlink $f; done
 Interceptor.attach(Module.findExportByName(null, 'open'), {
   onEnter: function (args) {
     var fname = args[0].readCString();
