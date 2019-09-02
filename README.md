@@ -266,7 +266,7 @@ var fds = {};
 Interceptor.attach(Module.findExportByName(null, 'open'), {
   onEnter: function (args) {
     var fname = args[0].readCString();
-    if (fname.endsWith('kdc')) {
+    if (fname.endsWith('.jar')) {
       this.flag = true;
       this.fname = fname;
     }
@@ -282,7 +282,8 @@ Interceptor.attach(Module.findExportByName(null, 'open'), {
     onEnter: function (args) {
       var fd = args[0];
       if (fd in fds)
-        console.log(`${fnc}: ${fds[fd]}\n\t${Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n\t')}`);
+        console.log(`${fnc}: ${fds[fd]}
+	\t${Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n\t')}`);
     }
   });
 });
