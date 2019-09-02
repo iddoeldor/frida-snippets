@@ -260,6 +260,36 @@ Interceptor.attach(Module.findExportByName("/system/lib/libc.so", "open"), {
 });
 ```
 
+
+```js
+var fds = {};
+Interceptor.attach(Module.findExportByName(null, 'open'), {
+  onEnter: function (args) {
+    var fname = args[0].readCString();
+    if (fname.endsWith('.jar')) {
+      console.log('open: ' + fname);
+      this.flag = true;
+      this.fname = fname;
+    }
+  },
+  onLeave: function (retval) {
+    if (this.flag) {
+      fds[retval] = this.fname;
+      console.warn(retval);
+    }
+  }
+});
+Interceptor.attach(Module.findExportByName(null, 'read'), {
+  onEnter: function (args) {
+    var fd = args[0];
+    if (fd in fds) {
+      console.log('read: ' + fds[fd]);
+      console.warn(Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n'));
+    }
+  }
+});
+```
+
 <details>
 <summary>Output example</summary>
 Intecepting `com.android.chrome`
