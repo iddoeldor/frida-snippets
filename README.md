@@ -1865,7 +1865,7 @@ Example of quick&dirty iOS device properties extraction
 var UIDevice = ObjC.classes.UIDevice.currentDevice();
 UIDevice.$ownMethods
   .filter(function(method) { 
-    return method.indexOf(':') == -1 /* filter out methods with parameters */·
+    return method.indexOf(':') == -1 /* filter out methods with parameters */
        && method.indexOf('+') == -1 /* filter out public methods */
   })
   .forEach(function(method) { 
