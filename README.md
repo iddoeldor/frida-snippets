@@ -26,6 +26,7 @@
 * [`Enumerate loaded classes`](#enumerate-loaded-classes) 
 * [`Class description`](#class-description)
 * [`Turn WiFi off`](#turn-wifi-off)
+* [`Set proxy`](#set-proxy)
 * [`Get IMEI`](#get-imei)
 * [`Hook io InputStream`](#hook-io-inputstream)
 * [`Android make Toast`](#android-make-toast)
@@ -803,6 +804,28 @@ Java.use("android.app.Activity").onCreate.overload("android.os.Bundle").implemen
     wManager.setWifiEnabled(false);
     this.$init(bundle);
 }
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+#### Set proxy
+
+It will set a system-wide proxy using the supplied IP address and port.
+
+```js
+var ActivityThread      = Java.use('android.app.ActivityThread');
+var ConnectivityManager = Java.use('android.net.ConnectivityManager');
+var ProxyInfo           = Java.use('android.net.ProxyInfo');
+
+var proxyInfo           = ProxyInfo.$new('192.168.1.10', 8080, ''); // change to null in order to disable the proxy.
+var context = ActivityThread.currentApplication().getApplicationContext();
+var connectivityManager = Java.cast(context.getSystemService('connectivity'), ConnectivityManager);
+connectivityManager.setGlobalProxy(proxyInfo);
 ```
 
 <details>
