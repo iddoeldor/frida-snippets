@@ -22,6 +22,7 @@
 <details>
 <summary>Android</summary>
 
+* [`Get system property`](#system-property-get)
 * [`Reveal manually registered native symbols`](#reveal-native-methods)
 * [`Enumerate loaded classes`](#enumerate-loaded-classes) 
 * [`Class description`](#class-description)
@@ -439,6 +440,68 @@ TODO
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+#### system property get
+
+```js
+Interceptor.attach(Module.findExportByName(null, '__system_property_get'), {
+	onEnter: function (args) {
+		this._name = args[0].readCString();
+		this._value = args[1];
+	},
+	onLeave: function (retval) {
+		console.log(JSON.stringify({
+			result_length: retval,
+			name: this._name,
+			val: this._value.readCString()
+		}));
+	}
+});
+```
+
+<details>
+<summary>Output example</summary>
+
+```sh
+{"result_length":"0x0","name":"ro.kernel.android.tracing","val":""}
+{"result_length":"0x0","name":"ro.config.hw_log","val":""}
+{"result_length":"0x0","name":"ro.config.hw_module_log","val":""}
+{"result_length":"0x1","name":"ro.debuggable","val":"0"}
+{"result_length":"0x1","name":"persist.sys.huawei.debug.on","val":"0"}
+{"result_length":"0x1","name":"ro.logsystem.usertype","val":"6"}
+{"result_length":"0x6","name":"ro.board.platform","val":"hi6250"}
+{"result_length":"0x4","name":"persist.sys.enable_iaware","val":"true"}
+{"result_length":"0x1","name":"persist.sys.cpuset.enable","val":"1"}
+{"result_length":"0x4","name":"persist.sys.cpuset.subswitch","val":"1272"}
+{"result_length":"0x4","name":"persist.sys.boost.durationms","val":"1000"}
+{"result_length":"0x4","name":"persist.sys.boost.isbigcore","val":"true"}
+{"result_length":"0x7","name":"persist.sys.boost.freqmin.b","val":"1805000"}
+{"result_length":"0x4","name":"persist.sys.boost.ipapower","val":"3500"}
+{"result_length":"0x0","name":"persist.sys.boost.skipframe","val":""}
+{"result_length":"0x0","name":"persist.sys.boost.byeachfling","val":""}
+{"result_length":"0x1","name":"debug.force_rtl","val":"0"}
+{"result_length":"0x0","name":"ro.hardware.gralloc","val":""}
+{"result_length":"0x6","name":"ro.hardware","val":"hi6250"}
+{"result_length":"0x0","name":"ro.kernel.qemu","val":""}
+{"result_length":"0x0","name":"ro.config.hw_force_rotation","val":""}
+{"result_length":"0x0","name":"persist.fb_auto_alloc","val":""}
+{"result_length":"0x0","name":"ro.config.hw_lock_res_whitelist","val":""}
+{"result_length":"0x3","name":"ro.sf.lcd_density","val":"480"}
+{"result_length":"0x0","name":"persist.sys.dpi","val":""}
+{"result_length":"0x0","name":"persist.sys.rog.width","val":""}
+{"result_length":"0x4","name":"dalvik.vm.usejitprofiles","val":"true"}
+{"result_length":"0x1","name":"debug.atrace.tags.enableflags","val":"0"}
+{"result_length":"0x1","name":"ro.debuggable","val":"0"}
+{"result_length":"0x1","name":"debug.force_rtl","val":"0"}
+{"result_length":"0x0","name":"ro.config.hw_lock_res_whitelist","val":""}
+....
+```
+	
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
 
 #### Reveal native methods
 
