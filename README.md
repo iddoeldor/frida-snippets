@@ -1837,11 +1837,13 @@ TODO
 
 ```js
 Process.enumerateRanges('rw-', {
-	onMatch: function (instance) {
-		console.log(`base=${instance.base} size=${instance.size} prot=${instance.protection}`);
-		var f = new File('/sdcard/' + instance.base + '_dump', 'wb');
-		f.write(Memory.readByteArray(instance.base, instance.size));
+	onMatch: function (range) {
+		var fname = `/sdcard/${range.base}_dump`;
+		var f = new File(fname, 'wb');
+		f.write(instance.base.readByteArray(instance.size));
+		f.flush();
 		f.close();
+		console.log(`base=${range.base} size=${range.size} prot=${range.protection} fname=${fname}`);
 	},
 	onComplete: function () {}
 });
