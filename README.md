@@ -45,6 +45,7 @@
 * [`Bypass FLAG_SECURE`](#bypass-flag_secure)
 * [`Shared Preferences update`](#shared-preferences-update)
 * [`Hook all method overloads`](#hook-overloads)
+* [`Register broadcast receiver`](#register-broadcast-receiver)
 * File system access hook `$ frida --codeshare FrenchYeti/android-file-system-access-hook -f com.example.app --no-pause`
 </details>
 
@@ -1412,8 +1413,6 @@ TODO
 
 <br>[⬆ Back to top](#table-of-contents)
 
-
-
 #### Hook overloads
 
 ```javascript
@@ -1446,6 +1445,36 @@ function hookOverloads(className, func) {
 Java.perform(function() {
   hookOverloads('java.lang.StringBuilder', '$init');
 })
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
+#### Register broadcast receiver
+
+```javascript
+Java.perform(() => {
+    const MyBroadcastReceiver = Java.registerClass({
+        name: 'MyBroadcastReceiver',
+        superClass: Java.use('android.content.BroadcastReceiver'),
+        methods: {
+            onReceive: [{
+                returnType: 'void',
+                argumentTypes: ['android.content.Context', 'android.content.Intent'],
+                implementation: function(context, intent) {
+                    // ..
+                }
+            }]
+        },
+    });
+    let ctx = Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
+    ctx.registerReceiver(MyBroadcastReceiver.$new(), Java.use('android.content.IntentFilter').$new('com.example.JAVA_TO_AGENT'));
+});
 ```
 
 <details>
