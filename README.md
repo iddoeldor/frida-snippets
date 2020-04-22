@@ -128,11 +128,7 @@ extern "C" {
 ```
 
 ```sh
-$ export PATH=$PATH:~/Downloads/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin
-$ aarch64-linux-android21-clang++ a.cpp -o a -shared -static-libstdc++
-$ file a
-a.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, not stripped
-$ adb push a /data/local/tmp/a
+$ ./android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++ a.cpp -o a -shared -static-libstdc++ && adb push a /data/local/tmp/a
 ```
 
 ```js
