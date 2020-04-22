@@ -5,6 +5,7 @@
 <details>
 <summary>Native</summary>
 
+* [`Load C++ module`](#load-c++-module)
 * [`One time watchpoint`](#one-time-watchpoint)
 * [`Socket activity`](#socket-activity)
 * [`Intercept open`](#intercept-open)
@@ -110,6 +111,50 @@ ab fridadescribe console.log(Object.getOwnPropertyNames(Java.use('$').__proto__)
 </details>
 
 <hr />
+
+#### Load C++ module
+
+```cpp
+#include <iostream>
+#include <string>
+
+extern "C" {
+  void* create_stdstr(char *data, int size) {
+    std::string* s = new std::string();
+    (*s).assign(data, size);		  
+    return s;
+  }
+}
+```
+
+```sh
+$ export PATH=$PATH:~/Downloads/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin
+$ aarch64-linux-android21-clang++ a.cpp -o a -shared -static-libstdc++
+$ file a
+a.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, not stripped
+$ adb push a /data/local/tmp/a
+```
+
+```js
+[device]-> 
+function readStdString(str) {
+  if ((str.readU8() & 1) === 1) { // size LSB (=1) indicates if it's a long string
+    return str.add(2 * Process.pointerSize).readPointer().readUtf8String();    
+  }
+  return str.add(1).readUtf8String();  
+}
+[device]-> Module.load('/data/local/tmp/a');
+[device]-> var fp_create_stdstr = Module.findExportByName('a', 'create_stdstr');
+[device]-> var createStdString = new NativeFunction(fp_create_stdstr, 'pointer', ['pointer', 'int']);
+[device]-> var stdstr1 = createStdString(Memory.allocUtf8String("abcd"), 3);
+"0x07691234567"
+[device]-> readStdString(stdstr1);
+"abc"
+```
+
+
+<br>[⬆ Back to top](#table-of-contents)
+
 
 
 #### One time watchpoint
