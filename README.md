@@ -5,7 +5,7 @@
 <details>
 <summary>Native</summary>
 
-* [`Load C++ module`](#load-c++-module)
+* [`Load C++ module`](#load-cpp-module)
 * [`One time watchpoint`](#one-time-watchpoint)
 * [`Socket activity`](#socket-activity)
 * [`Intercept open`](#intercept-open)
@@ -112,7 +112,7 @@ ab fridadescribe console.log(Object.getOwnPropertyNames(Java.use('$').__proto__)
 
 <hr />
 
-#### Load C++ module
+#### Load CPP module
 
 ```cpp
 #include <iostream>
