@@ -1010,14 +1010,10 @@ TODO
 #### Android make Toast
 
 ```js
-Java.scheduleOnMainThread(function() {
-	Java.use("android.widget.Toast")
-	    .makeText(
-            	Java.use("android.app.ActivityThread").currentApplication().getApplicationContext(),
-            	"Text to Toast here",
-            	0 // https://developer.android.com/reference/android/widget/Toast#LENGTH_LONG
-        	)
-        .show();
+// 0 = // https://developer.android.com/reference/android/widget/Toast#LENGTH_LONG
+Java.scheduleOnMainThread(() => {
+  Java.use("android.widget.Toast")
+    .makeText(Java.use("android.app.ActivityThread").currentApplication().getApplicationContext(), Java.Use("java.lang.StringBuilder").$new("Text to Toast here"), 0).show();
 });
 ```
 
