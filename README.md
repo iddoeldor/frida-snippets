@@ -5,7 +5,7 @@
 <details>
 <summary>Native</summary>
 
-* [`Load C++ module`](#load-cpp-module)
+* [`Load C/C++ module`](#load-cpp-module)
 * [`One time watchpoint`](#one-time-watchpoint)
 * [`Socket activity`](#socket-activity)
 * [`Intercept open`](#intercept-open)
@@ -146,6 +146,43 @@ function readStdString(str) {
 "0x07691234567"
 [device]-> readStdString(stdstr1);
 "abc"
+```
+
+#### Load C module
+
+* https://frida.re/docs/javascript-api/#cmodule
+* https://frida.re/news/2019/09/18/frida-12-7-released/
+
+
+```sh
+$ ./aarch64-linux-android21-clang /tmp/b.c -o /tmp/a -shared ../sysroot/usr/lib/aarch64-linux-android/21/liblog.so && adb push /tmp/a /data/local/tmp/a
+```
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <android/log.h>    
+
+#define TAG "TEST1"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
+void test(void) {
+  FILE* fp = popen("ls -l /proc/self/fd 2>&1", "r");
+  if (fp == NULL)
+    LOGE("executing cmd failed");
+  char b[256];
+  while (fgets(b, sizeof(b), fp) != NULL) {
+    LOGI("%s", b);
+  }
+  pclose(fp);
+}
+
+```
+
+```sh
+$ frida -Uf com.app --no-pause --enable-jit -e "Module.load('/data/local/tmp/a')"
+[ ] -> new NativeFunction(Module.findExportByName('a', 'test'), 'void', [])()
 ```
 
 
