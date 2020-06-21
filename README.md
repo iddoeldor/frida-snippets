@@ -168,7 +168,7 @@ $ ./aarch64-linux-android21-clang /tmp/b.c -o /tmp/a -shared ../sysroot/usr/lib/
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
 void test(void) {
-  FILE* fp = popen("ls -l /proc/self/fd 2>&1", "r");
+  FILE* fp = popen("ls -l /sdcard 2>&1", "r");
   if (fp == NULL)
     LOGE("executing cmd failed");
   char b[256];
