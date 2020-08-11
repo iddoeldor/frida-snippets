@@ -64,6 +64,7 @@
 * [`Hook refelaction`](#hook-refelaction)
 * [`Device properties`](#device-properties)
 * [`Take screenshot`](#take-screenshot)
+* [`Log SSH commands`](#log-ssh-commands)
 
 </details>
 
@@ -2227,6 +2228,26 @@ TODO
 <br>[⬆ Back to top](#table-of-contents)
 
 
+#### Log SSH Commands
+
+```js
+Interceptor.attach(ObjC.classes.NMSSHChannel['- execute:error:timeout:'].implementation, {  
+  onEnter: function(args) {  
+    this.cmd = ObjC.Object(args[2]).toString();
+    this.timeout = args[4];
+  }, 
+  onLeave: function(retv) {  
+    console.log(`CMD: ${ObjC.Object(args[2]).toString()} Timeout: ${args[4]} Ret: ${retv}`);
+  }  
+}); 
+```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
 
 #### TODOs 
 - Add GIFs & examples
