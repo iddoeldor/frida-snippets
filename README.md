@@ -23,6 +23,7 @@
 <details>
 <summary>Android</summary>
 
+* [`Binder transactions`](#binder-transactions)
 * [`Get system property`](#system-property-get)
 * [`Reveal manually registered native symbols`](#reveal-native-methods)
 * [`Enumerate loaded classes`](#enumerate-loaded-classes) 
@@ -582,6 +583,96 @@ Interceptor.attach(Module.findExportByName(null, '__system_property_get'), {
 
 <br>[⬆ Back to top](#table-of-contents)
 
+
+#### Binder transactions
+
+```js
+var LAST_MSG = '';
+Java.perform(() => {
+  Interceptor.attach(Module.findExportByName('libbinder.so', 'ioctl'), {
+    onEnter: function(args) {
+      var binder_write_read_ptr = args[2];
+      if (args[1] == 0xC0306201) { // BINDER_WRITE_READ
+        var binder_write_read = {
+          // 'fd': args[0].toInt32(),
+          'write_size': binder_write_read_ptr.readU64(),
+          'write_consumed': binder_write_read_ptr.add(Process.pointerSize).readU64(),
+          'write_buffer': binder_write_read_ptr.add(Process.pointerSize * 2).readPointer(),
+        }
+        if (binder_write_read.write_size > 0) {
+          var ptr = binder_write_read.write_buffer.add(binder_write_read.write_consumed + 4);
+          switch (binder_write_read.write_buffer.readU32() & 0xff) {
+              case 0: // BC_TRANSACTION
+              case 1: // BC_REPLY
+                var binder_transaction_data = {
+                  'target': {
+                    'handle': ptr.readU32(),
+                    'ptr': ptr.readPointer()
+                  },
+                  'cookie': ptr.add(8).readPointer(),
+                  'code': ptr.add(16).readU32(),
+                  'flags': ptr.add(20).readU32(),
+                  'sender_pid': ptr.add(24).readS32(),
+                  'sender_euid': ptr.add(28).readU32(),
+                  'data_size': ptr.add(32).readU64(),
+                  'offsets_size': ptr.add(40).readU64(),
+                  'data': {
+                    'ptr': {
+                      'buffer': ptr.add(48).readPointer(),
+                      'offsets': ptr.add(56).readPointer()
+                    },
+                    'buf': ptr.add(48).readByteArray(8)
+                  }
+                }
+                var _log = hexdump(binder_transaction_data.data.ptr.buffer, { length: binder_transaction_data.data_size, ansi: true });
+                if (LAST_MSG.toString() != _log.toString()) {
+                  console.log(JSON.stringify(binder_transaction_data, null, 2));
+                  console.log(_log);
+                }
+                break;
+          }
+        }
+      }
+    }
+  });
+});
+```
+
+<details>
+<summary>Output example</summary>
+
+```sh
+{
+  "target": {
+    "handle": 16,
+    "ptr": "0x10"
+  },
+  "cookie": "0x0",
+  "code": 22,
+  "flags": 16,
+  "sender_pid": 0,
+  "sender_euid": 0,
+  "data_size": "68",
+  "offsets_size": "0",
+  "data": {
+    "ptr": {
+      "buffer": "0x78dce3dcf0",
+      "offsets": "0x0"
+    },
+    "buf": {}
+  }
+}
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+78dce3dcf0  04 00 40 01 1d 00 00 00 61 00 6e 00 64 00 72 00  ..@.....a.n.d.r.
+78dce3dd00  6f 00 69 00 64 00 2e 00 6e 00 65 00 74 00 2e 00  o.i.d...n.e.t...
+78dce3dd10  77 00 69 00 66 00 69 00 2e 00 49 00 57 00 69 00  w.i.f.i...I.W.i.
+78dce3dd20  66 00 69 00 4d 00 61 00 6e 00 61 00 67 00 65 00  f.i.M.a.n.a.g.e.
+78dce3dd30  72 00 00 00                                      r...
+```
+	
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
 
 
 #### Reveal native methods
