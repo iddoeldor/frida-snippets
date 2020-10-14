@@ -17,6 +17,7 @@
 * [`Dump memory segments`](#dump-memory-segments)
 * [`Memory scan`](#memory-scan)
 * [`Stalker`](#stalker)
+* [`Cpp Demangler`](#cpp-demangler)
 
 </details>
 
@@ -2162,6 +2163,55 @@ mul x5, x2, x21 # mul 0x3, 0x4, 0x5
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
+
+
+
+
+
+
+#### Cpp demangler
+
+```sh
+$ npm i frida-compile demangler-js -g
+```
+
+add to your script
+
+```js
+const demangle = require('demangler-js').demangle;
+...
+Module.enumerateExportsSync('library.so')
+  .filter(x => x.name.startsWith('_Z'))
+  .forEach(x => {
+    Interceptor.attach(x.address, {
+      onEnter: function (args) {
+        console.log('[-] ' + demangle(x.name));
+      }
+    });
+  });
+```
+
+compile
+
+```sh
+$ frida-compile script.js -o out.js
+```
+
+run
+
+```sh
+$ frida -Uf com.app -l out.js
+```
+
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
 
 
 
