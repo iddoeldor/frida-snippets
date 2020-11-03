@@ -117,9 +117,12 @@ ab fridadescribe console.log(Object.getOwnPropertyNames(Java.use('$').__proto__)
 <details>
 <summary>JEB</summary>	
 
-Place cursor at Java method's signature and press `Ctrl+Shift+F`, it will copy the code to system clipboard using `xclip`.
+Java method hook generator with keyboard shortcut
 
-* Add to `~/$JEB$/scripts`
+1. Add the following Python code to `~/$JEB$/scripts` 
+2. Place cursor at Java method's signature and 
+3. Press `Ctrl+Shift+F`
+4. Code is copied to system clipboard (using `xclip`)
 
 
 ```python
