@@ -2242,7 +2242,18 @@ UIDevice.$ownMethods
     console.log(method, ':', UIDevice[method]())
   })
 console.log('executablePath =', ObjC.classes.NSBundle.mainBundle().executablePath().toString());
+```
 
+```js
+if (ObjC.available) { 
+	var processInfo = ObjC.classes.NSProcessInfo.processInfo();
+	var versionString = processInfo.operatingSystemVersionString().toString();
+	// E.g. "Version 13.5 (Build 17F75)"
+	var ver = versionString.split(' ');
+	var version = ver[1];
+	// E.g. 13.5
+	console.log("iOS version: " + version);  
+}
 ```
 
 <details>
