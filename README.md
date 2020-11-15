@@ -50,6 +50,8 @@
 * [`Hook all method overloads`](#hook-overloads)
 * [`Register broadcast receiver`](#register-broadcast-receiver)
 * File system access hook `$ frida --codeshare FrenchYeti/android-file-system-access-hook -f com.example.app --no-pause`
+* How to remove/disable java hooks ? Assign `null` to the `implementation` property.
+
 </details>
 
 <details>
