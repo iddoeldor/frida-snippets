@@ -18,6 +18,7 @@
 * [`Memory scan`](#memory-scan)
 * [`Stalker`](#stalker)
 * [`Cpp Demangler`](#cpp-demangler)
+* [`Early hook`](#early-hook)
 
 </details>
 
@@ -2217,6 +2218,52 @@ run
 ```sh
 $ frida -Uf com.app -l out.js
 ```
+
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
+#### Early hook
+
+Set hooks before DT_INIT_ARRAY ( [source](https://cs.android.com/android/platform/superproject/+/master:bionic/linker/linker_soinfo.cpp;l=386;drc=android-8.0.0_r1?q=call_constructor&ss=android%2Fplatform%2Fsuperproject) )
+
+```js
+let base;
+let do_dlopen = null;
+let call_ctor = null;
+const target_lib_name = 'targetlib.so';
+
+Process.findModuleByName('linker64').enumerateSymbols().forEach(sym => {
+    if (sym.name.indexOf('do_dlopen') >= 0) {
+        do_dlopen = sym.address;
+    } else if (sym.name.indexOf('call_constructor') >= 0) {
+        call_ctor = sym.address;
+    }
+})
+
+Interceptor.attach(do_dlopen, function () {
+    var what = this.context['x0'].readUtf8String();
+    if (what.indexOf(target_lib_name) >= 0) {
+        Interceptor.attach(call_ctor, function () {
+            Interceptor.detachAll();
+            console.log('loading target');
+            const module = Process.findModuleByName(target_lib_name);
+
+            console.log(module.base);
+            base = module.base;
+            // DoStuff
+        })
+    }
+})
+```
+
+
+Credit: [iGio90](https://github.com/iGio90)
 
 
 <details>
