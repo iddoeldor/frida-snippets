@@ -2246,17 +2246,14 @@ Process.findModuleByName('linker64').enumerateSymbols().forEach(sym => {
     }
 })
 
-Interceptor.attach(do_dlopen, function () {
-    var what = this.context['x0'].readUtf8String();
-    if (what.indexOf(target_lib_name) >= 0) {
+Interceptor.attach(do_dlopen, function (args) {
+    if (args[0].readUtf8String().indexOf(target_lib_name) >= 0) {
         Interceptor.attach(call_ctor, function () {
-            Interceptor.detachAll();
-            console.log('loading target');
             const module = Process.findModuleByName(target_lib_name);
-
-            console.log(module.base);
             base = module.base;
-            // DoStuff
+            console.log('loading', target_lib_name, '- base @', base);
+	    
+	    // DoStuff
         })
     }
 })
