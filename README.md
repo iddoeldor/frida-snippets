@@ -308,7 +308,8 @@ Process
     Interceptor.attach(ex.address, {
       onEnter: function (args) {
         var fd = args[0].toInt32();
-        if (Socket.type(fd) !== 'tcp')
+        var socktype = Socket.type(fd);
+        if (socktype !== 'tcp' && socktype !== 'tcp6')
           return;
         var address = Socket.peerAddress(fd);
         if (address === null)
