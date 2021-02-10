@@ -50,6 +50,7 @@
 * [`Shared Preferences update`](#shared-preferences-update)
 * [`Hook all method overloads`](#hook-overloads)
 * [`Register broadcast receiver`](#register-broadcast-receiver)
+* [`Increase step count`](#increase-step-count)
 * File system access hook `$ frida --codeshare FrenchYeti/android-file-system-access-hook -f com.example.app --no-pause`
 * How to remove/disable java hooks ? Assign `null` to the `implementation` property.
 
@@ -1661,6 +1662,53 @@ Java.perform(() => {
     ctx.registerReceiver(MyBroadcastReceiver.$new(), Java.use('android.content.IntentFilter').$new('com.example.JAVA_TO_AGENT'));
 });
 ```
+
+<details>
+<summary>Output example</summary>
+TODO
+</details>
+
+<br>[⬆ Back to top](#table-of-contents)
+
+
+
+#### Increase step count
+
+
+```js
+Java.perform(() => {
+  var customSensorEventListener = null;
+  var curSteps = 0;
+  var totalNumberOfRequiredSteps = 10000;
+
+  function incSteps() {
+    Java.perform(() => {
+      var sEvent = Java.use('android.hardware.SensorEvent').$new(1);
+      sEvent.values.values = Java.array('float', [curSteps]); // https://developer.android.com/reference/android/hardware/SensorEvent#values
+      sEvent.timestamp = Java.use('java.lang.Long').$new(Java.use('java.lang.System').nanoTime());
+      sEvent.accuracy = Java.use('java.lang.Integer').$new(3); // https://developer.android.com/reference/android/hardware/SensorManager#SENSOR_STATUS_ACCURACY_HIGH
+      customSensorEventListener.onSensorChanged(sEvent);
+      
+      if (curSteps < totalNumberOfRequiredSteps) {
+        setTimeout(() => {
+          curSteps += 50;
+          incSteps();
+        }, 1500)
+      }
+    });
+  }
+
+  Java.choose('.CustomSensorEventListener', {  // class that implements SensorEventListener
+    onMatch: function (instance) {
+      customSensorEventListener = instance;
+    },
+    onComplete: function () {
+      incSteps();
+    }
+  });
+});
+```
+
 
 <details>
 <summary>Output example</summary>
