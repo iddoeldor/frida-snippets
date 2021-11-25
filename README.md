@@ -1640,7 +1640,7 @@ function hookOverloads(className, func) {
   var clazz = Java.use(className);
   var overloads = clazz[func].overloads;
   for (var i in overloads) {
-    if (overloads[i].hasOwnProperty('argumentTypes')) {
+    if (overloads[i].hasOwnProperty('argumentTypes') || overloads[i]['argumentTypes'] != undefined) {
       var parameters = [];
 
       var curArgumentTypes = overloads[i].argumentTypes, args = [], argLog = '[';
