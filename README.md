@@ -2227,7 +2227,7 @@ pattern [ 52 41 4e 44 4f 4d ] {
             // condition to putCallout
 	    if (instruction.address <= endTrace && instruction.address >= startTrace) {     
 	      // print instruction & registers values
-              iter.putCallout(function(context) {
+              iterator.putCallout(function(context) {
                 var offset = ptr(context.pc).sub(base);
                 var inst = Instruction.parse(context.pc).toString();
                 var modified_inst = inst;
