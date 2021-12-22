@@ -136,29 +136,27 @@ Java method hook generator using keyboard shortcut
 #### Fetch SSL keys
 
 ```js
-var keylog_callback = new NativeCallback(function(ssl, line) {
+var keylog_callback = new NativeCallback((ssl, line) => {
   send(Memory.readCString(line));
 }, 'void', ['pointer', 'pointer']);
 
 if (ObjC.available) {
-  var CALLBACK_OFFSET = 0x2A8;
+  var CALLBACK_OFFSET = 0x2A8
   if (Memory.readDouble(Module.findExportByName('CoreFoundation', 'kCFCoreFoundationVersionNumber')) >= 1751.108) {
-    CALLBACK_OFFSET = 0x2B8;
+    CALLBACK_OFFSET = 0x2B8
   }
   Interceptor.attach(Module.findExportByName('libboringssl.dylib', 'SSL_CTX_set_info_callback'), {
-    onEnter: function (args) {
-      ptr(args[0]).add(CALLBACK_OFFSET).writePointer(keylog_callback);
+    onEnter(args) {
+      ptr(args[0]).add(CALLBACK_OFFSET).writePointer(keylog_callback)
     }
-  });
-
+  })
 } else if (Java.available) {
-  var set_keylog_callback = new NativeFunction(Module.findExportByName(Module.findBaseAddress('libssl.so'), 'SSL_CTX_set_keylog_callback'), 'void', ['pointer', 'pointer']);
-
+  var set_keylog_callback = new NativeFunction(Module.findExportByName('libssl.so', 'SSL_CTX_set_keylog_callback'), 'void', ['pointer', 'pointer']);
   Interceptor.attach(Module.findExportByName(libSSL, 'SSL_CTX_new'), {
-    onLeave: function(retval) {
-      set_keylog_callback(retval, keylog_callback);
+    onLeave(retval) {
+      set_keylog_callback(retval, keylog_callback)
     }
-  });
+  })
 }
 ```
 
