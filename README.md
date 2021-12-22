@@ -152,7 +152,7 @@ if (ObjC.available) {
   })
 } else if (Java.available) {
   var set_keylog_callback = new NativeFunction(Module.findExportByName('libssl.so', 'SSL_CTX_set_keylog_callback'), 'void', ['pointer', 'pointer']);
-  Interceptor.attach(Module.findExportByName(libSSL, 'SSL_CTX_new'), {
+  Interceptor.attach(Module.findExportByName('libssl.so', 'SSL_CTX_new'), {
     onLeave(retval) {
       set_keylog_callback(retval, keylog_callback)
     }
