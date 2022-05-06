@@ -553,7 +553,130 @@ sudo frida Process --no-pause --eval 'var x={};Process.enumerateModulesSync().fo
 ```
 <details>
 <summary>Output example</summary>
-TODO
+	
+```js
+{
+  "name": "app_process64",
+  "base": "0x6313a1c000",
+  "size": 40960,
+  "path": "/system/bin/app_process64"
+}
+{
+  "name": "libappfuse.so",
+  "base": "0x749ab96000",
+  "size": 53248,
+  "path": "/system/lib64/libappfuse.so"
+}
+{
+  "name": "android.hardware.graphics.mapper@2.0.so",
+  "base": "0x749b448000",
+  "size": 90112,
+  "path": "/system/lib64/android.hardware.graphics.mapper@2.0.so"
+}
+{
+  "name": "android.hardware.graphics.mapper@2.1.so",
+  "base": "0x749ac9e000",
+  "size": 94208,
+  "path": "/system/lib64/android.hardware.graphics.mapper@2.1.so"
+}
+{
+  "name": "android.hardware.graphics.mapper@3.0.so",
+  "base": "0x74981e0000",
+  "size": 98304,
+  "path": "/system/lib64/android.hardware.graphics.mapper@3.0.so"
+}
+{
+  "name": "android.hardware.graphics.mapper@2.0-impl-2.1.so",
+  "base": "0x73fb4cc000",
+  "size": 40960,
+  "path": "/vendor/lib64/hw/android.hardware.graphics.mapper@2.0-impl-2.1.so"
+}
+{
+  "name": "android.hardware.graphics.mapper@2.0.so",
+  "base": "0x73fb51f000",
+  "size": 90112,
+  "path": "/system/lib64/vndk-sp-29/android.hardware.graphics.mapper@2.0.so"
+}
+{
+  "name": "android.hardware.graphics.mapper@2.1.so",
+  "base": "0x73fb542000",
+  "size": 94208,
+  "path": "/system/lib64/vndk-sp-29/android.hardware.graphics.mapper@2.1.so"
+}
+{
+  "name": "base.odex",
+  "base": "0x73ab4cd000",
+  "size": 16965632,
+  "path": "/data/app/com.noodlecake.altosadventure-O2YLuwCOq7LbWSkRHkRLcg==/oat/arm64/base.odex"
+}
+{
+  "name": "libfrida-gadget.so",
+  "base": "0x73a2c05000",
+  "size": 22876160,
+  "path": "/data/app/com.noodlecake.altosadventure-O2YLuwCOq7LbWSkRHkRLcg==/lib/arm64/libfrida-gadget.so"
+}
+{
+  "name": "libmain.so",
+  "base": "0x73fb894000",
+  "size": 73728,
+  "path": "/data/app/com.noodlecake.altosadventure-O2YLuwCOq7LbWSkRHkRLcg==/lib/arm64/libmain.so"
+}
+{
+  "name": "libunity.so",
+  "base": "0x739bf88000",
+  "size": 24461312,
+  "path": "/data/app/com.noodlecake.altosadventure-O2YLuwCOq7LbWSkRHkRLcg==/lib/arm64/libunity.so"
+}
+{
+  "name": "libil2cpp.so",
+  "base": "0x7396fe6000",
+  "size": 25272320,
+  "path": "/data/app/com.noodlecake.altosadventure-O2YLuwCOq7LbWSkRHkRLcg==/lib/arm64/libil2cpp.so"
+}
+{
+  "name": "DynamiteLoader.odex",
+  "base": "0x73b7ee4000",
+  "size": 376832,
+  "path": "/data/user_de/0/com.google.android.gms/app_chimera/m/00000278/oat/arm64/DynamiteLoader.odex"
+}
+{
+  "name": "base.odex",
+  "base": "0x72f2ee3000",
+  "size": 166838272,
+  "path": "/data/app/com.google.android.gms-j7RpxBsNAd3ttAYEdp2ahg==/oat/arm64/base.odex"
+}
+{
+  "name": "base.odex",
+  "base": "0x7396e6d000",
+  "size": 28672,
+  "path": "/data/app/com.google.android.trichromelibrary_432418133-X7Kc2Mqi-VXkY12N59kGug==/oat/arm64/base.odex"
+}
+{
+  "name": "base.odex",
+  "base": "0x724f15e000",
+  "size": 13225984,
+  "path": "/data/app/com.google.android.webview-w6i6OBFZ7T_wK4W4TpDAiQ==/oat/arm64/base.odex"
+}
+{
+  "name": "libmonochrome.so",
+  "base": "0x73b8592000",
+  "size": 76673024,
+  "path": "/data/app/com.google.android.webview-w6i6OBFZ7T_wK4W4TpDAiQ==/base.apk!/lib/arm64-v8a/libmonochrome.so"
+}
+{
+  "name": "libnativeNoodleNews.so",
+  "base": "0x723add3000",
+  "size": 962560,
+  "path": "/data/app/com.noodlecake.altosadventure-O2YLuwCOq7LbWSkRHkRLcg==/lib/arm64/libnativeNoodleNews.so"
+}
+{
+  "name": "libconscrypt_gmscore_jni.so",
+  "base": "0x7206629000",
+  "size": 1130496,
+  "path": "/data/app/com.google.android.gms-j7RpxBsNAd3ttAYEdp2ahg==/base.apk!/lib/arm64-v8a/libconscrypt_gmscore_jni.so"
+}
+
+```
 </details>
 
 <br>[⬆ Back to top](#table-of-contents)
