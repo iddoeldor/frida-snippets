@@ -51,6 +51,7 @@
 * [`Hook all method overloads`](#hook-overloads)
 * [`Register broadcast receiver`](#register-broadcast-receiver)
 * [`Increase step count`](#increase-step-count)
+* [`list classes implements interface with class loaders`](#list-classes-implements-interface)
 * File system access hook `$ frida --codeshare FrenchYeti/android-file-system-access-hook -f com.example.app --no-pause`
 * How to remove/disable java hooks ? Assign `null` to the `implementation` property.
 
@@ -1825,6 +1826,37 @@ TODO
 
 <br>[⬆ Back to top](#table-of-contents)
 
+
+#### list classes implements interface
+
+```js
+function listClassesImplementsInterface(aInterface) {
+  let classLoaders = Java.enumerateClassLoadersSync()
+  Java.enumerateLoadedClassesSync().forEach(className => {
+    for (let i = 0; i < classLoaders.length; i++) {
+      let classLoader = classLoaders[i]
+      Java.classFactory.loader = classLoader
+      try {
+        let jclass = Java.use(className).class
+        let ifaces = jclass.getInterfaces().toString()
+        jclass = null
+        if (ifaces.indexOf(aInterface) != -1) {
+          console.log(JSON.stringify({
+            name: className,
+            loader: classLoader.toString(),
+            interfaces: ifaces
+          }))
+          break // we found one ClassLoader, that's enough
+        }
+      } catch (e) {
+        // continue to next ClassLoader
+      }
+    }
+  })
+}
+```
+
+<br>[⬆ Back to top](#table-of-contents)
 
 
 #### Increase step count
