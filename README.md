@@ -1582,51 +1582,55 @@ function traceClass(targetClass) {
     });
 }
 
+
 function traceMethod(targetClassMethod) {
-    var delim = targetClassMethod.lastIndexOf('.');
-    if (delim === -1)
-        return;
+    try {
+        var delim = targetClassMethod.lastIndexOf('.');
+        if (delim === -1)
+            return;
 
-    var targetClass = targetClassMethod.slice(0, delim);
-    var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length);
+        var targetClass = targetClassMethod.slice(0, delim);
+        var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length);
 
-    var hook = Java.use(targetClass);
-    var overloadCount = hook[targetMethod].overloads.length;
+        var hook = Java.use(targetClass);
+        var overloadCount = hook[targetMethod].overloads.length;
 
-    LOG({ tracing: targetClassMethod, overloaded: overloadCount }, { c: Color.Green });
+        LOG({ tracing: targetClassMethod, overloaded: overloadCount }, { c: Color.Green });
 
-    for (var i = 0; i < overloadCount; i++) {
-        hook[targetMethod].overloads[i].implementation = function () {
-            var log = { '#': targetClassMethod, args: [] };
+        for (var i = 0; i < overloadCount; i++) {
+            hook[targetMethod].overloads[i].implementation = function () {
+                var log = { '#': targetClassMethod, args: [] };
 
-            for (var j = 0; j < arguments.length; j++) {
-                var arg = arguments[j];
-                // quick&dirty fix for java.io.StringWriter char[].toString() impl because frida prints [object Object]
-                if (j === 0 && arguments[j]) {
-                    if (arguments[j].toString() === '[object Object]') {
-                        var s = [];
-                        for (var k = 0, l = arguments[j].length; k < l; k++) {
-                            s.push(arguments[j][k]);
+                for (var j = 0; j < arguments.length; j++) {
+                    var arg = arguments[j];
+                    // quick&dirty fix for java.io.StringWriter char[].toString() impl because frida prints [object Object]
+                    if (j === 0 && arguments[j]) {
+                        if (arguments[j].toString() === '[object Object]') {
+                            var s = [];
+                            for (var k = 0, l = arguments[j].length; k < l; k++) {
+                                s.push(arguments[j][k]);
+                            }
+                            arg = s.join('');
                         }
-                        arg = s.join('');
                     }
+                    log.args.push({ i: j, o: arg, s: arg ? arg.toString(): 'null'});
                 }
-                log.args.push({ i: j, o: arg, s: arg ? arg.toString(): 'null'});
-            }
 
-            var retval;
-            try {
-                retval = this[targetMethod].apply(this, arguments); // might crash (Frida bug?)
-                log.returns = { val: retval, str: retval ? retval.toString() : null };
-            } catch (e) {
-                console.error(e);
+                var retval;
+                try {
+                    retval = this[targetMethod].apply(this, arguments); // might crash (Frida bug?)
+                    log.returns = { val: retval, str: retval ? retval.toString() : null };
+                } catch (e) {
+                    console.error(e);
+                }
+                LOG(log, { c: Color.Blue });
+                return retval;
             }
-            LOG(log, { c: Color.Blue });
-            return retval;
         }
+    } catch(error) {
+        LOG({ tracing: targetClassMethod, "overloaded": 0}, { c: Color.Red });
     }
 }
-
 // remove duplicates from array
 function uniqBy(array, key) {
     var seen = {};
